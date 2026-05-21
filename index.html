@@ -554,11 +554,13 @@ let state = {
   apiKey: localStorage.getItem('gemini_key') || '',
   scans: JSON.parse(localStorage.getItem('scans') || '{}'),
   restock: JSON.parse(localStorage.getItem('restock') || '{}'),
+  learnings: JSON.parse(localStorage.getItem('learnings') || '{"counter":[],"bin":[]}'),
 };
 
 function saveState(){
   localStorage.setItem('scans', JSON.stringify(state.scans));
   localStorage.setItem('restock', JSON.stringify(state.restock));
+  localStorage.setItem('learnings', JSON.stringify(state.learnings));
 }
 
 // ============================================================
@@ -767,6 +769,42 @@ function onPhotoSelected(event){
 // ============================================================
 // GEMINI ANALYSIS
 // ============================================================
+function buildLearningsBlock(zoneType){
+  const lessons = state.learnings[zoneType] || [];
+  if(lessons.length < 2) return '';
+
+  // Aggréger par produit
+  const byProduct = {};
+  lessons.forEach(l=>{
+    if(!byProduct[l.productName]) byProduct[l.productName] = {deltas:[], count:0};
+    byProduct[l.productName].deltas.push(l.delta);
+    byProduct[l.productName].count++;
+  });
+
+  const insights = [];
+  Object.entries(byProduct).forEach(([name, data])=>{
+    if(data.count < 2) return;
+    const avg = data.deltas.reduce((s,d)=>s+d,0) / data.deltas.length;
+    const absAvg = Math.abs(avg);
+    if(absAvg < 0.5) return;
+
+    if(avg < 0){
+      insights.push(`- "${name}": Tu as tendance à SUR-COMPTER (+${absAvg.toFixed(1)} en trop en moyenne sur ${data.count} essais). SOIS PLUS CONSERVATEUR.`);
+    } else {
+      insights.push(`- "${name}": Tu as tendance à SOUS-COMPTER (${absAvg.toFixed(1)} oubliée(s) en moyenne sur ${data.count} essais). COMPTE AUSSI les bouteilles partiellement cachées.`);
+    }
+  });
+
+  if(insights.length === 0) return '';
+
+  return `
+
+RETOUR D'EXPÉRIENCE — LEÇONS APPRISES DE TES ERREURS PASSÉES SUR CE BAR:
+${insights.join('\n')}
+
+Tiens compte de ces patterns pour éviter de répéter les mêmes erreurs.`;
+}
+
 async function analyzePhoto(){
   if(!currentPhoto) return;
   const positions = POSITIONS.filter(p=>p.n>=currentSection.range[0] && p.n<=currentSection.range[1]);
@@ -779,6 +817,7 @@ async function analyzePhoto(){
   `;
 
   const isVip = currentSection.isVip;
+  const counterLearnings = buildLearningsBlock('counter');
 
   const positionsDescription = positions.map(p=>{
     if(p.exception){
@@ -788,7 +827,7 @@ async function analyzePhoto(){
   }).join('\n');
 
   const prompt = isVip ? `
-Tu analyses une photo du comptoir VIP d'un bar. C'est une zone de stockage où chaque position contient une ou plusieurs bouteilles d'un produit spécifique.
+Tu analyses une photo du comptoir VIP d'un bar. C'est une zone de stockage où chaque position contient une ou plusieurs bouteilles d'un produit spécifique.${counterLearnings}
 
 POSITIONS À ANALYSER (de gauche à droite):
 ${positionsDescription}
@@ -805,7 +844,7 @@ Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, format exact:
 
 Sois précis. Si tu ne peux pas voir une position clairement, mets "confidence": "low".
 ` : `
-Tu analyses une photo du comptoir d'un bar. Chaque "position" est une COLONNE de 3 bouteilles alignées en PROFONDEUR (la 1ère devant avec un bec verseur, 2 derrière). Quand une bouteille est manquante, il y a un TROU visible (moins de bouchons visibles au-dessus).
+Tu analyses une photo du comptoir d'un bar. Chaque "position" est une COLONNE de 3 bouteilles alignées en PROFONDEUR (la 1ère devant avec un bec verseur, 2 derrière). Quand une bouteille est manquante, il y a un TROU visible (moins de bouchons visibles au-dessus).${counterLearnings}
 
 POSITIONS À ANALYSER (de gauche à droite):
 ${positionsDescription}
@@ -887,22 +926,26 @@ function renderValidation(detected, positions){
   currentResults = positions.map(p=>{
     const d = detMap[p.n] || {detected: 3, confidence: 'low'};
     const expected = 3;
-    const missing = Math.max(0, expected - (d.detected ?? 3));
+    const detected = d.detected ?? 3;
+    const missing = Math.max(0, expected - detected);
     return {
       n: p.n,
       name: p.name,
       cat: p.cat,
       exception: p.exception,
       items: p.items,
-      detected: d.detected ?? 3,
+      detected: detected,
+      aiOriginalDetected: detected, // pour delta apprentissage
       missing: missing,
       confidence: d.confidence || 'medium',
       exception_detail: d.exception_detail,
     };
   });
 
-  renderValidationUI();
+  renderValidation_();
 }
+
+function renderValidation_(){renderValidationUI();}
 
 function renderValidationUI(){
   const totalMissing = currentResults.reduce((s,r)=>s+r.missing, 0);
@@ -1013,7 +1056,34 @@ function adjustQty(idx, delta){
 }
 
 function confirmValidation(){
+  // ============================================================
+  // APPRENTISSAGE: Capturer les corrections IA → user
+  // ============================================================
+  const zoneType = currentSection.isBin ? 'bin' : 'counter';
+  const now = Date.now();
+  currentResults.forEach(r=>{
+    if(r.aiOriginalDetected !== undefined && r.confidence !== 'manual'){
+      const delta = r.detected - r.aiOriginalDetected;
+      if(delta !== 0){
+        // L'utilisateur a corrigé. Stocker la leçon.
+        state.learnings[zoneType].push({
+          productName: r.name,
+          aiSaid: r.aiOriginalDetected,
+          actualWas: r.detected,
+          delta: delta,
+          timestamp: now,
+        });
+      }
+    }
+  });
+  // Garder seulement les 100 dernières par type
+  if(state.learnings[zoneType].length > 100){
+    state.learnings[zoneType] = state.learnings[zoneType].slice(-100);
+  }
+
+  // ============================================================
   // First, remove previous scan for this section
+  // ============================================================
   const oldScan = state.scans[currentSection.id];
   if(oldScan && oldScan.results){
     oldScan.results.forEach(r=>{
@@ -1070,8 +1140,8 @@ function confirmValidation(){
   });
 
   // Save scan record
-  const now = new Date();
-  const ts = now.toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const scanDate = new Date();
+  const ts = scanDate.toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
   const totalMissing = currentResults.reduce((s,r)=>s+r.missing, 0);
   state.scans[currentSection.id] = {
     timestamp: ts,
@@ -1165,7 +1235,9 @@ async function analyzeBinPhoto(){
     </div>
   `;
 
-  const prompt = `Tu es un expert en identification de spiritueux par leurs CAPSULES/BOUCHONS vu du dessus. Tu analyses une photo prise verticalement au-dessus d'un bac de stockage de bar. Les bouteilles sont debout, certaines partiellement cachées par d'autres.
+  const learningsBlock = buildLearningsBlock('bin');
+
+  const prompt = `Tu es un expert en identification de spiritueux par leurs CAPSULES/BOUCHONS vu du dessus. Tu analyses une photo prise verticalement au-dessus d'un bac de stockage de bar. Les bouteilles sont debout, certaines partiellement cachées par d'autres.${learningsBlock}
 
 PRODUITS RECHERCHÉS ET SIGNATURE VISUELLE EXACTE DE CHAQUE BOUCHON:
 
@@ -1282,6 +1354,7 @@ function renderBinValidation(detected, reasoning){
       cat: p.cat,
       min: p.min,
       detected: detectedCount,
+      aiOriginalDetected: detectedCount, // pour calculer le delta plus tard
       missing: missing,
       confidence: d.confidence || 'medium',
       aiNote: d.note || '',
@@ -1352,11 +1425,109 @@ function renderRestock(){
       <button class="btn btn-secondary" onclick="copyList()">
         📋 Copier la liste
       </button>
+      <button class="btn btn-secondary" onclick="showLearnings()">
+        🧠 Voir les leçons IA (${(state.learnings.counter.length + state.learnings.bin.length)})
+      </button>
       <button class="btn btn-danger" onclick="resetRestock()">
         Vider la liste
       </button>
     </div>
   `;
+}
+
+function showLearnings(){
+  const counter = state.learnings.counter || [];
+  const bin = state.learnings.bin || [];
+
+  // Aggregation pour affichage
+  function aggregate(lessons){
+    const byProduct = {};
+    lessons.forEach(l=>{
+      if(!byProduct[l.productName]) byProduct[l.productName] = {deltas:[], count:0, lastTime:0};
+      byProduct[l.productName].deltas.push(l.delta);
+      byProduct[l.productName].count++;
+      byProduct[l.productName].lastTime = Math.max(byProduct[l.productName].lastTime, l.timestamp);
+    });
+    return Object.entries(byProduct)
+      .map(([name, data])=>{
+        const avg = data.deltas.reduce((s,d)=>s+d,0) / data.deltas.length;
+        return {name, avg, count: data.count, lastTime: data.lastTime};
+      })
+      .sort((a,b)=>Math.abs(b.avg)-Math.abs(a.avg));
+  }
+
+  const counterAgg = aggregate(counter);
+  const binAgg = aggregate(bin);
+
+  const renderInsight = (insight)=>{
+    const dir = insight.avg < 0 ? 'sur-comptait' : 'sous-comptait';
+    const absAvg = Math.abs(insight.avg).toFixed(1);
+    const dotClass = Math.abs(insight.avg) >= 1.5 ? 'bad' : Math.abs(insight.avg) >= 0.7 ? 'warn' : 'ok';
+    return `
+      <div class="restock-item">
+        <div style="flex:1">
+          <div class="restock-item-name">${escapeHtml(insight.name)}</div>
+          <div class="restock-item-detail">
+            <span class="dot ${dotClass}" style="display:inline-block;margin-right:6px"></span>
+            ${dir} de ${absAvg} en moyenne • ${insight.count} essai${insight.count>1?'s':''}
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  document.getElementById('restock-content').innerHTML = `
+    <div style="margin-bottom:14px">
+      <button class="back-btn" onclick="renderRestock()">←</button>
+    </div>
+    <div class="restock-summary">
+      <div class="restock-summary-label">Apprentissage IA</div>
+      <div class="restock-summary-num">${counter.length + bin.length}</div>
+      <div class="restock-summary-sub">corrections enregistrées</div>
+    </div>
+    <div style="background:rgba(200,150,87,0.05);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12px;line-height:1.5;color:var(--text-2)">
+      <strong style="color:var(--accent)">Comment ça marche :</strong><br>
+      À chaque fois que tu corriges l'IA en ajustant les quantités, on enregistre l'erreur. Quand un produit accumule au moins 2 corrections avec un pattern clair, on injecte cette leçon dans les futurs prompts. L'IA devient progressivement plus précise sur ton bar.
+    </div>
+
+    ${counterAgg.length > 0 ? `
+      <div class="section-title">Comptoir — Patterns détectés</div>
+      <div class="cat-group">
+        <div class="cat-items">
+          ${counterAgg.filter(i=>Math.abs(i.avg)>=0.5).slice(0,15).map(renderInsight).join('') || '<div style="padding:14px;color:var(--text-3);font-size:13px;text-align:center">Pas encore de pattern significatif (besoin d\'au moins 2 corrections par produit)</div>'}
+        </div>
+      </div>
+    ` : ''}
+
+    ${binAgg.length > 0 ? `
+      <div class="section-title">Bacs blancs — Patterns détectés</div>
+      <div class="cat-group">
+        <div class="cat-items">
+          ${binAgg.filter(i=>Math.abs(i.avg)>=0.5).slice(0,15).map(renderInsight).join('') || '<div style="padding:14px;color:var(--text-3);font-size:13px;text-align:center">Pas encore de pattern significatif</div>'}
+        </div>
+      </div>
+    ` : ''}
+
+    ${counter.length === 0 && bin.length === 0 ? `
+      <div class="empty">
+        <div class="empty-icon">🧠</div>
+        <div class="empty-text">Aucune correction enregistrée pour l'instant.<br><span style="font-size:12px;color:var(--text-3)">Corrige l'IA en ajustant les quantités lors d'un scan, et l'apprentissage se construira ici.</span></div>
+      </div>
+    ` : ''}
+
+    <div class="btn-stack" style="margin-top:24px">
+      <button class="btn btn-secondary" onclick="renderRestock()">← Retour</button>
+      <button class="btn btn-danger" onclick="resetLearnings()">Réinitialiser les leçons</button>
+    </div>
+  `;
+}
+
+function resetLearnings(){
+  if(!confirm('Effacer toutes les leçons apprises ? L\'IA va perdre tout son apprentissage.')) return;
+  state.learnings = {counter:[], bin:[]};
+  saveState();
+  toast('Leçons réinitialisées');
+  renderRestock();
 }
 
 function restockAdjust(name, delta){

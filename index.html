@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0a">
+<title>Réassort Bar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0a;
+  --bg-2:#141414;
+  --bg-3:#1c1c1c;
+  --border:#2a2a2a;
+  --text:#f5f0e6;
+  --text-2:#a0958a;
+  --text-3:#666058;
+  --accent:#c89657;
+  --accent-2:#e8b974;
+  --danger:#e85c52;
+  --warn:#e8b974;
+  --ok:#7ec97e;
+}
+html,body{height:100%;overflow-x:hidden}
+body{
+  font-family:'Manrope',-apple-system,system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  font-size:15px;
+  line-height:1.4;
+  overscroll-behavior:none;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.app{min-height:100vh;display:flex;flex-direction:column;max-width:480px;margin:0 auto;position:relative}
+
+/* HEADER */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg);
+  position:sticky;top:0;z-index:10;
+}
+.header h1{
+  font-family:'Fraunces',serif;
+  font-weight:600;
+  font-size:22px;
+  letter-spacing:-0.02em;
+}
+.header h1 span{color:var(--accent)}
+.badge{
+  background:var(--accent);color:#000;
+  font-weight:700;font-size:11px;
+  padding:3px 8px;border-radius:100px;
+  letter-spacing:0.04em;
+}
+
+/* CONTENT */
+.content{flex:1;padding:18px;padding-bottom:120px}
+
+.section-title{
+  font-family:'Fraunces',serif;
+  font-size:13px;
+  text-transform:uppercase;
+  letter-spacing:0.15em;
+  color:var(--text-3);
+  margin:24px 0 12px;
+  font-weight:600;
+}
+.section-title:first-child{margin-top:0}
+
+/* CARDS */
+.card{
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+.card:active{transform:scale(0.98);background:var(--bg-3)}
+.card-row{display:flex;align-items:center;justify-content:space-between}
+.card-title{font-weight:600;font-size:16px;letter-spacing:-0.01em}
+.card-sub{font-size:13px;color:var(--text-2);margin-top:3px}
+.card-arrow{color:var(--text-3);font-size:20px}
+
+.scan-card{
+  background:linear-gradient(135deg,#1c1410 0%,#0a0a0a 100%);
+  border:1px solid var(--border);
+}
+.scan-card.done{
+  border-color:var(--ok);
+  opacity:0.75;
+}
+.scan-card.partial{border-color:var(--accent)}
+
+/* RESTOCK LIST */
+.restock-summary{
+  background:linear-gradient(135deg,#1a1410 0%,#0f0c08 100%);
+  border:1px solid var(--accent);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+}
+.restock-summary-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:0.15em;
+  color:var(--accent);font-weight:600;
+}
+.restock-summary-num{
+  font-family:'Fraunces',serif;
+  font-size:42px;line-height:1;
+  font-weight:600;margin-top:8px;letter-spacing:-0.03em;
+}
+.restock-summary-sub{font-size:13px;color:var(--text-2);margin-top:6px}
+
+.restock-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:14px 16px;
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  margin-bottom:8px;
+}
+.restock-item-name{font-weight:600;font-size:15px}
+.restock-item-detail{font-size:12px;color:var(--text-3);margin-top:2px}
+.qty-controls{display:flex;align-items:center;gap:10px}
+.qty-btn{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--bg-3);border:1px solid var(--border);
+  color:var(--text);font-size:18px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+.qty-btn:active{background:var(--border)}
+.qty-num{font-weight:700;font-size:18px;min-width:24px;text-align:center;font-family:'Fraunces',serif}
+
+/* BUTTONS */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;
+  padding:16px;
+  background:var(--accent);
+  color:#000;
+  border:none;border-radius:12px;
+  font-family:inherit;font-weight:700;font-size:15px;
+  cursor:pointer;
+  letter-spacing:0.02em;
+}
+.btn:active{background:var(--accent-2)}
+.btn-secondary{background:var(--bg-3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:active{background:var(--border)}
+.btn-danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn-icon{font-size:18px}
+
+.btn-stack{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+
+/* BOTTOM TAB BAR */
+.tabs{
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg);
+  border-top:1px solid var(--border);
+  display:flex;justify-content:space-around;
+  padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+  z-index:50;
+  max-width:480px;margin:0 auto;
+}
+.tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:6px;
+  font-size:11px;font-weight:600;
+  color:var(--text-3);
+  background:none;border:none;cursor:pointer;
+  font-family:inherit;
+  text-transform:uppercase;letter-spacing:0.08em;
+}
+.tab.active{color:var(--accent)}
+.tab-icon{font-size:22px}
+
+/* MODAL / SCREEN */
+.screen{
+  position:fixed;inset:0;
+  background:var(--bg);
+  z-index:100;
+  display:none;
+  flex-direction:column;
+  max-width:480px;margin:0 auto;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.screen.active{display:flex}
+.screen-header{
+  display:flex;align-items:center;gap:14px;
+  padding:14px 18px;
+  border-bottom:1px solid var(--border);
+}
+.screen-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;letter-spacing:-0.01em;flex:1}
+.back-btn{
+  background:var(--bg-2);border:1px solid var(--border);
+  width:36px;height:36px;border-radius:50%;
+  color:var(--text);font-size:18px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+}
+.screen-body{flex:1;overflow-y:auto;padding:18px;padding-bottom:120px}
+
+/* PHOTO CAPTURE */
+.photo-preview{
+  width:100%;
+  aspect-ratio:3/4;
+  background:var(--bg-2);
+  border:2px dashed var(--border);
+  border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:18px;
+  overflow:hidden;
+  position:relative;
+}
+.photo-preview img{width:100%;height:100%;object-fit:cover}
+.photo-placeholder{text-align:center;padding:30px;color:var(--text-2)}
+.photo-placeholder-icon{font-size:60px;margin-bottom:10px;opacity:0.4}
+
+/* LOADING */
+.loading{display:flex;flex-direction:column;align-items:center;gap:18px;padding:40px 20px;text-align:center}
+.spinner{
+  width:42px;height:42px;
+  border:3px solid var(--border);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--text-2);font-size:14px}
+
+/* POSITION ITEM (validation) */
+.position-item{
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:14px 16px;
+  margin-bottom:8px;
+}
+.position-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.position-info{flex:1;min-width:0}
+.position-num{
+  font-size:11px;color:var(--text-3);font-weight:600;
+  text-transform:uppercase;letter-spacing:0.1em;
+}
+.position-name{font-weight:600;font-size:14px;margin-top:2px;letter-spacing:-0.01em}
+.position-name.exception{color:var(--accent)}
+.position-status{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:600;
+}
+.dot{width:8px;height:8px;border-radius:50%}
+.dot.ok{background:var(--ok)}
+.dot.warn{background:var(--warn)}
+.dot.bad{background:var(--danger)}
+
+/* SETUP / API KEY */
+.setup-card{
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:22px;
+}
+.setup-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin-bottom:6px;letter-spacing:-0.02em}
+.setup-sub{color:var(--text-2);font-size:14px;margin-bottom:18px;line-height:1.5}
+.input{
+  width:100%;
+  padding:14px 16px;
+  background:var(--bg);
+  border:1px solid var(--border);
+  border-radius:12px;
+  color:var(--text);
+  font-family:inherit;font-size:15px;
+  margin-bottom:12px;
+}
+.input:focus{outline:none;border-color:var(--accent)}
+.help{font-size:12px;color:var(--text-3);line-height:1.5;margin-top:10px}
+.help a{color:var(--accent);text-decoration:none}
+
+/* TOAST */
+.toast{
+  position:fixed;
+  bottom:100px;left:50%;
+  transform:translateX(-50%) translateY(100px);
+  background:var(--bg-3);
+  border:1px solid var(--border);
+  color:var(--text);
+  padding:12px 18px;
+  border-radius:30px;
+  font-size:14px;font-weight:600;
+  z-index:200;
+  opacity:0;
+  transition:all 0.3s ease;
+  white-space:nowrap;
+  max-width:90vw;
+  overflow:hidden;text-overflow:ellipsis;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EMPTY */
+.empty{text-align:center;padding:60px 20px;color:var(--text-2)}
+.empty-icon{font-size:48px;opacity:0.3;margin-bottom:12px}
+.empty-text{font-size:15px}
+
+/* CATEGORY group */
+.cat-group{
+  background:var(--bg-2);
+  border:1px solid var(--border);
+  border-radius:14px;
+  margin-bottom:12px;
+  overflow:hidden;
+}
+.cat-header{
+  padding:12px 16px;
+  font-family:'Fraunces',serif;
+  font-size:13px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--accent);
+  background:rgba(200,150,87,0.05);
+  border-bottom:1px solid var(--border);
+}
+.cat-items{padding:8px}
+.cat-items .restock-item{background:transparent;border:none;border-radius:8px;padding:10px 8px;margin-bottom:0}
+
+.exception-hint{
+  background:rgba(200,150,87,0.1);
+  border:1px solid var(--accent);
+  color:var(--accent-2);
+  padding:10px 12px;
+  border-radius:10px;
+  font-size:12px;
+  margin-top:10px;
+  line-height:1.4;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HOME -->
+<div id="home" class="screen-content">
+  <div class="header">
+    <h1>Réassort<span>.</span></h1>
+    <span class="badge" id="header-badge">0</span>
+  </div>
+  <div class="content">
+    <div id="setup-screen" style="display:none">
+      <div class="setup-card">
+        <div class="setup-title">Configuration</div>
+        <div class="setup-sub">Colle ta clé API Gemini (gratuite). Elle reste sur ton téléphone.</div>
+        <input type="password" id="api-key-input" class="input" placeholder="AIzaSy...">
+        <button class="btn" onclick="saveApiKey()">Valider</button>
+        <div class="help">
+          1. Va sur <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a><br>
+          2. "Create API key" → "new project"<br>
+          3. Copie-colle la clé ici
+        </div>
+      </div>
+    </div>
+
+    <div id="main-screen">
+      <div class="restock-summary" onclick="showTab('restock')">
+        <div class="restock-summary-label">À réassortir</div>
+        <div class="restock-summary-num" id="restock-total">0</div>
+        <div class="restock-summary-sub" id="restock-sub">Aucun manque détecté</div>
+      </div>
+
+      <div class="section-title">Comptoir bas — Front</div>
+      <div id="sections-list"></div>
+
+      <div class="section-title">Bacs blancs — Front</div>
+      <div id="bins-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION SCAN -->
+<div id="section-screen" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="screen-title" id="section-title">Section</div>
+  </div>
+  <div class="screen-body">
+    <div id="section-content"></div>
+  </div>
+</div>
+
+<!-- RESTOCK LIST -->
+<div id="restock-screen" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="hideScreen('restock-screen')">←</button>
+    <div class="screen-title">Liste de réassort</div>
+  </div>
+  <div class="screen-body">
+    <div id="restock-content"></div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" id="tab-scan" onclick="showTab('scan')">
+    <div class="tab-icon">📷</div>
+    Scanner
+  </button>
+  <button class="tab" id="tab-restock" onclick="showTab('restock')">
+    <div class="tab-icon">📋</div>
+    Réassort
+  </button>
+</div>
+
+<div id="toast" class="toast"></div>
+
+</div>
+
+<script>
+// ============================================================
+// DATA : 84 POSITIONS DU COMPTOIR BAS FRONT
+// ============================================================
+const POSITIONS = [
+  {n:1, name:"Pinot Noir Maison Paul Manevey", cat:"Vin"},
+  {n:2, name:"Panéry 2022", cat:"Vin"},
+  {n:3, name:"Baileys", cat:"Liqueur"},
+  {n:4, name:"Cointreau + Kahlua + Kahlua", cat:"Liqueur", exception:true, items:["Cointreau","Kahlua","Kahlua"]},
+  {n:5, name:"Ricard", cat:"Pastis"},
+  {n:6, name:"Picon", cat:"Apéritif"},
+  {n:7, name:"Giffard Amaretto", cat:"Liqueur"},
+  {n:8, name:"Bacardi Spiced", cat:"Rhum"},
+  {n:9, name:"Trois Rivières Cuvée Océan", cat:"Rhum"},
+  {n:10, name:"Get 27", cat:"Liqueur"},
+  {n:11, name:"Aperol", cat:"Apéritif"},
+  {n:12, name:"St-Germain", cat:"Liqueur"},
+  {n:13, name:"Suze", cat:"Apéritif"},
+  {n:14, name:"Campari", cat:"Apéritif"},
+  {n:15, name:"Bombay Bramble", cat:"Gin"},
+  {n:16, name:"Bombay Sapphire", cat:"Gin"},
+  {n:17, name:"Beefeater 0.0", cat:"Sans alcool"},
+  {n:18, name:"Captain Morgan Spiced 0.0", cat:"Sans alcool"},
+  {n:19, name:"Martini Vibrante 0.0", cat:"Sans alcool"},
+  {n:20, name:"JD Fire + JD Apple + JD Apple", cat:"Whisky", exception:true, items:["Jack Daniel's Fire","Jack Daniel's Apple","Jack Daniel's Apple"]},
+  {n:21, name:"Jack Daniel's Honey", cat:"Whisky"},
+  {n:22, name:"Jack Daniel's Blackberry", cat:"Whisky"},
+  {n:23, name:"Bacardi Spiced", cat:"Rhum"},
+  {n:24, name:"Bacardi Carta Oro", cat:"Rhum"},
+  {n:25, name:"Jameson", cat:"Whisky"},
+  {n:26, name:"Malibu", cat:"Liqueur"},
+  {n:27, name:"Absolut Vodka", cat:"Vodka"},
+  {n:28, name:"Beefeater", cat:"Gin"},
+  {n:29, name:"Grey Goose", cat:"Vodka"},
+  {n:30, name:"Grey Goose Berry (rouge)", cat:"Vodka"},
+  {n:31, name:"Giffard Amaretto", cat:"Liqueur"},
+  {n:32, name:"Thoquino Cachaça", cat:"Cachaça"},
+  {n:33, name:"Sailor Jerry Spiced", cat:"Rhum"},
+  {n:34, name:"Bacardi Spiced", cat:"Rhum"},
+  {n:35, name:"Get 27", cat:"Liqueur"},
+  {n:36, name:"Aperol", cat:"Apéritif"},
+  {n:37, name:"Martini Bianco", cat:"Vermouth"},
+  {n:38, name:"Martini Rosso", cat:"Vermouth"},
+  {n:39, name:"Campari", cat:"Apéritif"},
+  {n:40, name:"Bombay Sapphire", cat:"Gin"},
+  {n:41, name:"Bombay Bramble", cat:"Gin"},
+  {n:42, name:"Thoquino Cachaça", cat:"Cachaça"},
+  {n:43, name:"St-Germain", cat:"Liqueur"},
+  {n:44, name:"Baileys", cat:"Liqueur"},
+  {n:45, name:"Cointreau + Kahlua + Kahlua", cat:"Liqueur", exception:true, items:["Cointreau","Kahlua","Kahlua"]},
+  {n:46, name:"Ricard", cat:"Pastis"},
+  {n:47, name:"Pinot Noir", cat:"Vin"},
+  {n:48, name:"Panéry", cat:"Vin"},
+  {n:49, name:"Get 27", cat:"Liqueur"},
+  {n:50, name:"Aperol", cat:"Apéritif"},
+  {n:51, name:"St-Germain", cat:"Liqueur"},
+  {n:52, name:"Martini Bianco", cat:"Vermouth"},
+  {n:53, name:"Martini Rosso", cat:"Vermouth"},
+  {n:54, name:"Bacardi Spiced", cat:"Rhum"},
+  {n:55, name:"Captain Morgan 0.0", cat:"Sans alcool"},
+  {n:56, name:"Trois Rivières Cuvée Océan", cat:"Rhum"},
+  {n:57, name:"Bombay Sapphire", cat:"Gin"},
+  {n:58, name:"Malibu", cat:"Liqueur"},
+  {n:59, name:"Ricard", cat:"Pastis"},
+  {n:60, name:"Cointreau + Kahlua + Kahlua", cat:"Liqueur", exception:true, items:["Cointreau","Kahlua","Kahlua"]},
+  {n:61, name:"Baileys", cat:"Liqueur"},
+  {n:62, name:"Aperol", cat:"Apéritif"},
+  {n:63, name:"Get 27", cat:"Liqueur"},
+  {n:64, name:"St-Germain", cat:"Liqueur"},
+  {n:65, name:"Martini Rosso", cat:"Vermouth"},
+  {n:66, name:"Martini Bianco", cat:"Vermouth"},
+  {n:67, name:"Malibu", cat:"Liqueur"},
+  {n:68, name:"Trois Rivières", cat:"Rhum"},
+  {n:69, name:"Thoquino Cachaça", cat:"Cachaça"},
+  {n:70, name:"Ricard", cat:"Pastis"},
+  {n:71, name:"Kahlua", cat:"Liqueur"},
+  {n:72, name:"Baileys", cat:"Liqueur"},
+  {n:73, name:"Cointreau", cat:"Liqueur"},
+  {n:74, name:"Bacardi Spiced", cat:"Rhum"},
+  {n:75, name:"Bacardi Carta Oro", cat:"Rhum"},
+  {n:76, name:"Sailor Jerry", cat:"Rhum"},
+  {n:77, name:"Giffard Amaretto", cat:"Liqueur"},
+  {n:78, name:"Jack Daniel's Old No.7", cat:"Whisky VIP", vip:true},
+  {n:79, name:"Jack Daniel's Old No.7", cat:"Whisky VIP", vip:true},
+  {n:80, name:"Bacardi Carta Blanca", cat:"Rhum VIP", vip:true},
+  {n:81, name:"Bacardi Carta Blanca", cat:"Rhum VIP", vip:true},
+  {n:82, name:"Bacardi Spiced", cat:"Rhum VIP", vip:true},
+  {n:83, name:"Bacardi Spiced", cat:"Rhum VIP", vip:true},
+  {n:84, name:"Bacardi Oro", cat:"Rhum VIP", vip:true},
+];
+
+// 9 sections of ~9 positions each (Comptoir bas Front)
+const SECTIONS = [
+  {id:1, zone:"counter", name:"Section 1", range:[1,10], desc:"Pinot Noir → Get 27"},
+  {id:2, zone:"counter", name:"Section 2", range:[11,20], desc:"Aperol → JD Fire/Apple"},
+  {id:3, zone:"counter", name:"Section 3", range:[21,30], desc:"JD Honey → Grey Goose Berry"},
+  {id:4, zone:"counter", name:"Section 4", range:[31,40], desc:"Amaretto → Bombay Sapphire"},
+  {id:5, zone:"counter", name:"Section 5", range:[41,50], desc:"Bombay Bramble → Aperol"},
+  {id:6, zone:"counter", name:"Section 6", range:[51,60], desc:"St-Germain → Cointreau/Kahlua"},
+  {id:7, zone:"counter", name:"Section 7", range:[61,70], desc:"Baileys → Ricard"},
+  {id:8, zone:"counter", name:"Section 8", range:[71,77], desc:"Kahlua → Amaretto"},
+  {id:9, zone:"counter", name:"VIP", range:[78,84], desc:"JD No.7 → Bacardi Oro", isVip:true},
+];
+
+// BACS BLANCS — FRONT (5 bacs identiques)
+// Minimum par bac
+const BIN_PRODUCTS = [
+  {name:"Absolut Vodka", min:5, cat:"Vodka", hint:"bouchon argenté lisse"},
+  {name:"Beefeater", min:4, cat:"Gin", hint:"bouchon rouge + B doré"},
+  {name:"Bacardi Carta Blanca", min:3, cat:"Rhum", hint:"bouchon blanc + chauve-souris rouge"},
+  {name:"El Jimador Tequila", min:3, cat:"Tequila", hint:"bouchon turquoise/vert d'eau"},
+  {name:"Jameson", min:3, cat:"Whisky", hint:"bouchon noir + J doré"},
+  {name:"Jack Daniel's", min:2, cat:"Whisky", hint:"bouchon noir Old No.7"},
+  {name:"Crème de Pêche Giffard", min:1, cat:"Liqueur", hint:"bouchon bleu marine '1885'"},
+  {name:"Triple Sec Giffard", min:1, cat:"Liqueur", hint:"bouchon bleu marine '1885'"},
+];
+
+const BINS = [
+  {id:"bin-1", zone:"bins", name:"Bac 1", desc:"Stock sous-comptoir", isBin:true},
+  {id:"bin-2", zone:"bins", name:"Bac 2", desc:"Stock sous-comptoir", isBin:true},
+  {id:"bin-3", zone:"bins", name:"Bac 3", desc:"Stock sous-comptoir", isBin:true},
+  {id:"bin-4", zone:"bins", name:"Bac 4", desc:"Stock sous-comptoir", isBin:true},
+  {id:"bin-5", zone:"bins", name:"Bac 5", desc:"Stock sous-comptoir", isBin:true},
+];
+
+const ALL_SCANNABLES = [...SECTIONS, ...BINS];
+
+// ============================================================
+// STATE
+// ============================================================
+let state = {
+  apiKey: localStorage.getItem('gemini_key') || '',
+  scans: JSON.parse(localStorage.getItem('scans') || '{}'),
+  restock: JSON.parse(localStorage.getItem('restock') || '{}'),
+};
+
+function saveState(){
+  localStorage.setItem('scans', JSON.stringify(state.scans));
+  localStorage.setItem('restock', JSON.stringify(state.restock));
+}
+
+// ============================================================
+// UI HELPERS
+// ============================================================
+function toast(msg, ms=2500){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), ms);
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function hideScreen(id){
+  document.getElementById(id).classList.remove('active');
+}
+function goHome(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  renderHome();
+}
+
+function showTab(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(tab==='scan'){
+    document.getElementById('tab-scan').classList.add('active');
+    goHome();
+  } else if(tab==='restock'){
+    document.getElementById('tab-restock').classList.add('active');
+    renderRestock();
+    showScreen('restock-screen');
+  }
+}
+
+// ============================================================
+// SETUP
+// ============================================================
+function saveApiKey(){
+  const v = document.getElementById('api-key-input').value.trim();
+  if(!v.startsWith('AIza')){
+    toast('Clé invalide (doit commencer par AIza)');
+    return;
+  }
+  localStorage.setItem('gemini_key', v);
+  state.apiKey = v;
+  toast('Clé enregistrée ✓');
+  renderHome();
+}
+
+// ============================================================
+// HOME RENDER
+// ============================================================
+function renderHome(){
+  if(!state.apiKey){
+    document.getElementById('setup-screen').style.display = 'block';
+    document.getElementById('main-screen').style.display = 'none';
+    return;
+  }
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+
+  // Restock total
+  const totalUnits = Object.values(state.restock).reduce((s,v)=>s+v, 0);
+  document.getElementById('restock-total').textContent = totalUnits;
+  document.getElementById('header-badge').textContent = totalUnits;
+  const uniq = Object.keys(state.restock).length;
+  document.getElementById('restock-sub').textContent = totalUnits === 0
+    ? 'Aucun manque détecté'
+    : `${uniq} produit${uniq>1?'s':''} • ${totalUnits} bouteille${totalUnits>1?'s':''}`;
+
+  // Sections list — Comptoir
+  const list = document.getElementById('sections-list');
+  list.innerHTML = SECTIONS.map(s=>{
+    const scan = state.scans[s.id];
+    let statusClass = '';
+    let statusText = `Positions ${s.range[0]} → ${s.range[1]}`;
+    if(scan){
+      const missing = scan.missing || 0;
+      if(missing === 0){ statusClass = 'done'; statusText = `✓ Complet (${scan.timestamp})`; }
+      else { statusClass = 'partial'; statusText = `⚠ ${missing} manque${missing>1?'s':''} • ${scan.timestamp}`; }
+    }
+    return `
+      <div class="card scan-card ${statusClass}" onclick="openSection(${s.id})">
+        <div class="card-row">
+          <div>
+            <div class="card-title">${s.name}${s.isVip?' ★':''}</div>
+            <div class="card-sub">${statusText}</div>
+            <div class="card-sub" style="margin-top:2px;color:var(--text-3)">${s.desc}</div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Bacs blancs
+  const binsList = document.getElementById('bins-list');
+  binsList.innerHTML = BINS.map(b=>{
+    const scan = state.scans[b.id];
+    let statusClass = '';
+    let statusText = b.desc;
+    if(scan){
+      const missing = scan.missing || 0;
+      if(missing === 0){ statusClass = 'done'; statusText = `✓ Complet (${scan.timestamp})`; }
+      else { statusClass = 'partial'; statusText = `⚠ ${missing} manque${missing>1?'s':''} • ${scan.timestamp}`; }
+    }
+    return `
+      <div class="card scan-card ${statusClass}" onclick="openBin('${b.id}')">
+        <div class="card-row">
+          <div>
+            <div class="card-title">${b.name}</div>
+            <div class="card-sub">${statusText}</div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// SECTION SCAN
+// ============================================================
+let currentSection = null;
+let currentPhoto = null;
+
+function openSection(id){
+  currentSection = SECTIONS.find(s=>s.id===id);
+  currentPhoto = null;
+  document.getElementById('section-title').textContent = currentSection.name;
+  renderSectionInit();
+  showScreen('section-screen');
+}
+
+function renderSectionInit(){
+  const positions = POSITIONS.filter(p=>p.n>=currentSection.range[0] && p.n<=currentSection.range[1]);
+  document.getElementById('section-content').innerHTML = `
+    <div class="photo-preview" id="photo-preview">
+      <div class="photo-placeholder">
+        <div class="photo-placeholder-icon">📷</div>
+        <div>Prends une photo nette de la section<br>(${currentSection.desc})</div>
+      </div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
+    <div class="btn-stack">
+      <button class="btn" onclick="document.getElementById('photo-input').click()">
+        <span class="btn-icon">📷</span> Prendre la photo
+      </button>
+      <button class="btn btn-secondary" onclick="manualEntry()">
+        ✏️ Saisir manuellement
+      </button>
+    </div>
+    <div class="section-title">Positions attendues</div>
+    ${positions.map(p=>`
+      <div class="position-item">
+        <div class="position-row">
+          <div class="position-info">
+            <div class="position-num">Position ${p.n} • ${p.cat}</div>
+            <div class="position-name ${p.exception?'exception':''}">${p.name}</div>
+            ${p.exception ? '<div class="exception-hint">⚠️ Position exception — 3 produits différents en profondeur</div>' : ''}
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function onPhotoSelected(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    currentPhoto = e.target.result;
+    document.getElementById('photo-preview').innerHTML = `<img src="${currentPhoto}">`;
+    if(currentSection.isBin){
+      analyzeBinPhoto();
+    } else {
+      analyzePhoto();
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ============================================================
+// GEMINI ANALYSIS
+// ============================================================
+async function analyzePhoto(){
+  if(!currentPhoto) return;
+  const positions = POSITIONS.filter(p=>p.n>=currentSection.range[0] && p.n<=currentSection.range[1]);
+
+  document.getElementById('section-content').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Analyse en cours...<br><span style="color:var(--text-3);font-size:12px">(5-15s)</span></div>
+    </div>
+  `;
+
+  const isVip = currentSection.isVip;
+
+  const positionsDescription = positions.map(p=>{
+    if(p.exception){
+      return `Position ${p.n} (EXCEPTION): 3 bouteilles DIFFÉRENTES en profondeur = ${p.items.join(' + ')}. Compter chaque produit séparément.`;
+    }
+    return `Position ${p.n}: "${p.name}" (3 bouteilles identiques en profondeur attendues)`;
+  }).join('\n');
+
+  const prompt = isVip ? `
+Tu analyses une photo du comptoir VIP d'un bar. C'est une zone de stockage où chaque position contient une ou plusieurs bouteilles d'un produit spécifique.
+
+POSITIONS À ANALYSER (de gauche à droite):
+${positionsDescription}
+
+Pour chaque position, compte le nombre de bouteilles VISIBLES du produit attendu.
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, format exact:
+{
+  "positions": [
+    {"n": 78, "detected": 3, "expected": 3, "confidence": "high"},
+    ...
+  ]
+}
+
+Sois précis. Si tu ne peux pas voir une position clairement, mets "confidence": "low".
+` : `
+Tu analyses une photo du comptoir d'un bar. Chaque "position" est une COLONNE de 3 bouteilles alignées en PROFONDEUR (la 1ère devant avec un bec verseur, 2 derrière). Quand une bouteille est manquante, il y a un TROU visible (moins de bouchons visibles au-dessus).
+
+POSITIONS À ANALYSER (de gauche à droite):
+${positionsDescription}
+
+MÉTHODE: Pour chaque position, compte le nombre de bouchons/capsules visibles AU-DESSUS de la ligne des bouteilles. Chaque produit a une couleur de bouchon caractéristique. 3 bouchons visibles = position pleine. 2 = il manque 1 bouteille. 1 = il manque 2. 0 = vide.
+
+Pour les positions EXCEPTION: compte chaque produit attendu séparément.
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, format exact:
+{
+  "positions": [
+    {"n": 1, "detected": 3, "expected": 3, "confidence": "high"},
+    {"n": 4, "detected": 3, "expected": 3, "confidence": "medium", "exception_detail": {"Cointreau": 1, "Kahlua": 2}},
+    ...
+  ]
+}
+
+Sois précis et conservateur. Si tu ne peux pas voir clairement, mets "confidence": "low" et estime au mieux.
+`;
+
+  try {
+    const base64 = currentPhoto.split(',')[1];
+    const mimeType = currentPhoto.match(/data:(.*?);/)[1];
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {text: prompt},
+            {inline_data: {mime_type: mimeType, data: base64}}
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json"
+        }
+      })
+    });
+
+    if(!response.ok){
+      const err = await response.text();
+      throw new Error(`API error: ${response.status} - ${err.substring(0,200)}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
+    const parsed = JSON.parse(text);
+
+    renderValidation(parsed.positions, positions);
+
+  } catch(e){
+    console.error(e);
+    document.getElementById('section-content').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">Erreur d'analyse:<br><span style="color:var(--danger);font-size:12px">${e.message}</span></div>
+        <div class="btn-stack" style="max-width:300px;margin:20px auto">
+          <button class="btn" onclick="renderSectionInit()">Réessayer</button>
+          <button class="btn btn-secondary" onclick="manualEntry()">Saisir manuellement</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+// ============================================================
+// VALIDATION
+// ============================================================
+let currentResults = null;
+
+function renderValidation(detected, positions){
+  // Map detected by position number
+  const detMap = {};
+  detected.forEach(d=>{ detMap[d.n] = d; });
+
+  // Init results with detected values
+  currentResults = positions.map(p=>{
+    const d = detMap[p.n] || {detected: 3, confidence: 'low'};
+    const expected = 3;
+    const missing = Math.max(0, expected - (d.detected ?? 3));
+    return {
+      n: p.n,
+      name: p.name,
+      cat: p.cat,
+      exception: p.exception,
+      items: p.items,
+      detected: d.detected ?? 3,
+      missing: missing,
+      confidence: d.confidence || 'medium',
+      exception_detail: d.exception_detail,
+    };
+  });
+
+  renderValidationUI();
+}
+
+function renderValidationUI(){
+  const totalMissing = currentResults.reduce((s,r)=>s+r.missing, 0);
+
+  document.getElementById('section-content').innerHTML = `
+    <div class="restock-summary">
+      <div class="restock-summary-label">Détecté par l'IA</div>
+      <div class="restock-summary-num">${totalMissing}</div>
+      <div class="restock-summary-sub">bouteille${totalMissing>1?'s':''} manquante${totalMissing>1?'s':''} sur cette section</div>
+    </div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;line-height:1.5">
+      Vérifie chaque position. Ajuste les manquants si l'IA s'est trompée, puis valide.
+    </div>
+    <div id="validation-list">
+      ${currentResults.map((r, i)=>renderValidationItem(r, i)).join('')}
+    </div>
+    <div class="btn-stack">
+      <button class="btn" onclick="confirmValidation()">
+        ✓ Valider et ajouter au réassort
+      </button>
+      <button class="btn btn-secondary" onclick="${currentSection.isBin ? 'renderBinInit()' : 'renderSectionInit()'}">
+        Reprendre une photo
+      </button>
+    </div>
+  `;
+}
+
+function renderValidationItem(r, i){
+  let dotClass = 'ok';
+  if(r.missing === 0) dotClass = 'ok';
+  else if(r.missing < (r.isBin ? r.min : 3)) dotClass = 'warn';
+  else dotClass = 'bad';
+
+  const confLabel = r.confidence === 'high' ? '' : r.confidence === 'medium' ? ' • IA: moyenne' : r.confidence === 'manual' ? ' • Manuel' : ' • IA: incertain';
+
+  if(r.isBin){
+    return `
+      <div class="position-item">
+        <div class="position-row">
+          <div class="position-info">
+            <div class="position-num">${r.cat} • min ${r.min}${confLabel}</div>
+            <div class="position-name">${r.name}</div>
+          </div>
+          <div class="position-status">
+            <div class="dot ${dotClass}"></div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <div>
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Manque</div>
+            <div style="font-size:13px;color:var(--text-2);margin-top:2px">Détecté: ${r.detected}/${r.min}</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="adjustQty(${i},-1)">−</button>
+            <div class="qty-num">${r.missing}</div>
+            <button class="qty-btn" onclick="adjustQty(${i},1)">+</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="position-item">
+      <div class="position-row">
+        <div class="position-info">
+          <div class="position-num">Position ${r.n} • ${r.cat}${confLabel}</div>
+          <div class="position-name ${r.exception?'exception':''}">${r.name}</div>
+          ${r.exception_detail ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px">IA: ${Object.entries(r.exception_detail).map(([k,v])=>`${k}=${v}`).join(', ')}</div>` : ''}
+        </div>
+        <div class="position-status">
+          <div class="dot ${dotClass}"></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+        <div>
+          <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Manque</div>
+          <div style="font-size:13px;color:var(--text-2);margin-top:2px">Présent: ${r.detected}/3</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="adjustQty(${i},-1)">−</button>
+          <div class="qty-num">${r.missing}</div>
+          <button class="qty-btn" onclick="adjustQty(${i},1)">+</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function adjustQty(idx, delta){
+  const r = currentResults[idx];
+  const maxMissing = r.isBin ? r.min : 3;
+  r.missing = Math.max(0, Math.min(maxMissing, r.missing + delta));
+  r.detected = (r.isBin ? r.min : 3) - r.missing;
+  renderValidationUI();
+}
+
+function confirmValidation(){
+  // First, remove previous scan for this section
+  const oldScan = state.scans[currentSection.id];
+  if(oldScan && oldScan.results){
+    oldScan.results.forEach(r=>{
+      if(r.missing > 0){
+        if(r.isBin){
+          // Bin item
+          if(state.restock[r.name]) state.restock[r.name] = Math.max(0, state.restock[r.name] - r.missing);
+        } else if(r.exception){
+          // Exception: decrement based on stored exception_detail or items
+          const detail = r.exception_detail || {};
+          const itemCounts = {};
+          (r.items || []).forEach(it=>{ itemCounts[it] = (itemCounts[it]||0) + 1; });
+          Object.keys(itemCounts).forEach(item=>{
+            const expected = itemCounts[item];
+            const detected = detail[item] !== undefined ? detail[item] : expected;
+            const wasMissing = Math.max(0, expected - detected);
+            if(wasMissing > 0 && state.restock[item]){
+              state.restock[item] = Math.max(0, state.restock[item] - wasMissing);
+            }
+          });
+        } else {
+          if(state.restock[r.name]) state.restock[r.name] = Math.max(0, state.restock[r.name] - r.missing);
+        }
+      }
+    });
+  }
+
+  // Add new missing items
+  currentResults.forEach(r=>{
+    if(r.missing > 0){
+      if(r.isBin){
+        state.restock[r.name] = (state.restock[r.name] || 0) + r.missing;
+      } else if(r.exception){
+        const detail = r.exception_detail || {};
+        const itemCounts = {};
+        r.items.forEach(it=>{ itemCounts[it] = (itemCounts[it]||0) + 1; });
+        Object.keys(itemCounts).forEach(item=>{
+          const expected = itemCounts[item];
+          const detected = detail[item] !== undefined ? detail[item] : expected;
+          const missing = Math.max(0, expected - detected);
+          if(missing > 0){
+            state.restock[item] = (state.restock[item] || 0) + missing;
+          }
+        });
+      } else {
+        state.restock[r.name] = (state.restock[r.name] || 0) + r.missing;
+      }
+    }
+  });
+
+  // Clean zeros
+  Object.keys(state.restock).forEach(k=>{
+    if(state.restock[k] === 0) delete state.restock[k];
+  });
+
+  // Save scan record
+  const now = new Date();
+  const ts = now.toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const totalMissing = currentResults.reduce((s,r)=>s+r.missing, 0);
+  state.scans[currentSection.id] = {
+    timestamp: ts,
+    missing: totalMissing,
+    results: currentResults,
+  };
+
+  saveState();
+  toast('Réassort mis à jour ✓');
+  goHome();
+}
+
+function manualEntry(){
+  if(currentSection.isBin){
+    currentResults = BIN_PRODUCTS.map(p=>({
+      name: p.name,
+      cat: p.cat,
+      min: p.min,
+      detected: p.min,
+      missing: 0,
+      confidence: 'manual',
+      isBin: true,
+    }));
+  } else {
+    const positions = POSITIONS.filter(p=>p.n>=currentSection.range[0] && p.n<=currentSection.range[1]);
+    currentResults = positions.map(p=>({
+      n: p.n,
+      name: p.name,
+      cat: p.cat,
+      exception: p.exception,
+      items: p.items,
+      detected: 3,
+      missing: 0,
+      confidence: 'manual',
+    }));
+  }
+  renderValidationUI();
+}
+
+// ============================================================
+// BACS BLANCS
+// ============================================================
+function openBin(binId){
+  currentSection = BINS.find(b=>b.id===binId);
+  currentPhoto = null;
+  document.getElementById('section-title').textContent = currentSection.name;
+  renderBinInit();
+  showScreen('section-screen');
+}
+
+function renderBinInit(){
+  document.getElementById('section-content').innerHTML = `
+    <div class="photo-preview" id="photo-preview">
+      <div class="photo-placeholder">
+        <div class="photo-placeholder-icon">📷</div>
+        <div>Prends une photo du bac vu du dessus<br>(${currentSection.name})</div>
+      </div>
+    </div>
+    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
+    <div class="btn-stack">
+      <button class="btn" onclick="document.getElementById('photo-input').click()">
+        <span class="btn-icon">📷</span> Prendre la photo
+      </button>
+      <button class="btn btn-secondary" onclick="manualEntry()">
+        ✏️ Saisir manuellement
+      </button>
+    </div>
+    <div class="section-title">Produits attendus dans ce bac</div>
+    ${BIN_PRODUCTS.map(p=>`
+      <div class="position-item">
+        <div class="position-row">
+          <div class="position-info">
+            <div class="position-num">${p.cat} • min ${p.min} bouteille${p.min>1?'s':''}</div>
+            <div class="position-name">${p.name}</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:3px">${p.hint}</div>
+          </div>
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+async function analyzeBinPhoto(){
+  if(!currentPhoto) return;
+
+  document.getElementById('section-content').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Analyse du bac en cours...<br><span style="color:var(--text-3);font-size:12px">(5-15s)</span></div>
+    </div>
+  `;
+
+  const productList = BIN_PRODUCTS.map(p=>
+    `- ${p.name} (${p.cat}, minimum ${p.min}) — Indice visuel: ${p.hint}`
+  ).join('\n');
+
+  const prompt = `
+Tu analyses une photo prise du dessus d'un bac de stockage de bouteilles d'alcool dans un bar. Les bouteilles sont debout en vrac, on voit principalement les BOUCHONS et CAPSULES depuis le haut.
+
+PRODUITS À COMPTER:
+${productList}
+
+MÉTHODE: Pour chaque produit, compte le nombre de bouchons VISIBLES correspondant à son indice visuel. Sois conservateur: si une bouteille est partiellement cachée mais identifiable, compte-la. Si tu doutes, ne compte pas.
+
+ATTENTION:
+- Bacardi Carta Blanca = bouchon BLANC avec disque rouge "chauve-souris" (différent du Bacardi Spiced qui aurait un bouchon doré)
+- Absolut Vodka = bouchon argenté lisse, sans logo coloré visible
+- Beefeater = bouchon rouge avec "B" doré
+- El Jimador = bouchon turquoise/vert d'eau métallisé
+- Jameson = bouchon noir avec "J" doré
+- Jack Daniel's = bouchon noir avec étiquette "Old No.7" ou similaire
+- Crème de Pêche / Triple Sec Giffard = bouchon bleu marine avec écusson doré "1885"
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks:
+{
+  "products": [
+    {"name": "Absolut Vodka", "detected": 5, "confidence": "high"},
+    {"name": "Beefeater", "detected": 4, "confidence": "high"},
+    {"name": "Bacardi Carta Blanca", "detected": 3, "confidence": "medium"},
+    {"name": "El Jimador Tequila", "detected": 3, "confidence": "high"},
+    {"name": "Jameson", "detected": 2, "confidence": "high"},
+    {"name": "Jack Daniel's", "detected": 2, "confidence": "high"},
+    {"name": "Crème de Pêche Giffard", "detected": 1, "confidence": "medium"},
+    {"name": "Triple Sec Giffard", "detected": 1, "confidence": "medium"}
+  ]
+}
+`;
+
+  try {
+    const base64 = currentPhoto.split(',')[1];
+    const mimeType = currentPhoto.match(/data:(.*?);/)[1];
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.apiKey}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            {text: prompt},
+            {inline_data: {mime_type: mimeType, data: base64}}
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.1,
+          responseMimeType: "application/json"
+        }
+      })
+    });
+
+    if(!response.ok){
+      const err = await response.text();
+      throw new Error(`API error: ${response.status} - ${err.substring(0,200)}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates[0].content.parts[0].text;
+    const parsed = JSON.parse(text);
+
+    renderBinValidation(parsed.products);
+
+  } catch(e){
+    console.error(e);
+    document.getElementById('section-content').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">Erreur d'analyse:<br><span style="color:var(--danger);font-size:12px">${e.message}</span></div>
+        <div class="btn-stack" style="max-width:300px;margin:20px auto">
+          <button class="btn" onclick="renderBinInit()">Réessayer</button>
+          <button class="btn btn-secondary" onclick="manualEntry()">Saisir manuellement</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function renderBinValidation(detected){
+  // Map by product name
+  const detMap = {};
+  detected.forEach(d=>{ detMap[d.name] = d; });
+
+  currentResults = BIN_PRODUCTS.map(p=>{
+    const d = detMap[p.name] || {detected: p.min, confidence: 'low'};
+    const detectedCount = d.detected ?? p.min;
+    const missing = Math.max(0, p.min - detectedCount);
+    return {
+      name: p.name,
+      cat: p.cat,
+      min: p.min,
+      detected: detectedCount,
+      missing: missing,
+      confidence: d.confidence || 'medium',
+      isBin: true,
+    };
+  });
+
+  renderValidationUI();
+}
+
+// ============================================================
+// RESTOCK RENDER
+// ============================================================
+function renderRestock(){
+  const container = document.getElementById('restock-content');
+  const items = Object.entries(state.restock).filter(([k,v])=>v>0);
+
+  if(items.length === 0){
+    container.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">✨</div>
+        <div class="empty-text">Aucun manque détecté.<br>Bar fully stocked.</div>
+      </div>
+    `;
+    return;
+  }
+
+  // Group by category
+  const byCategory = {};
+  items.forEach(([name, qty])=>{
+    // Find category from POSITIONS or BIN_PRODUCTS
+    const pos = POSITIONS.find(p=>p.name === name || (p.items && p.items.includes(name)));
+    const bin = BIN_PRODUCTS.find(p=>p.name === name);
+    const cat = pos ? pos.cat.replace(' VIP','') : (bin ? bin.cat : 'Autres');
+    if(!byCategory[cat]) byCategory[cat] = [];
+    byCategory[cat].push({name, qty});
+  });
+
+  const totalUnits = items.reduce((s,[k,v])=>s+v, 0);
+
+  container.innerHTML = `
+    <div class="restock-summary">
+      <div class="restock-summary-label">Total à réassortir</div>
+      <div class="restock-summary-num">${totalUnits}</div>
+      <div class="restock-summary-sub">${items.length} produit${items.length>1?'s':''} concerné${items.length>1?'s':''}</div>
+    </div>
+    ${Object.entries(byCategory).map(([cat, products])=>`
+      <div class="cat-group">
+        <div class="cat-header">${cat}</div>
+        <div class="cat-items">
+          ${products.map(p=>`
+            <div class="restock-item">
+              <div>
+                <div class="restock-item-name">${p.name}</div>
+              </div>
+              <div class="qty-controls">
+                <button class="qty-btn" onclick="restockAdjust('${p.name.replace(/'/g,"\\'")}',-1)">−</button>
+                <div class="qty-num">${p.qty}</div>
+                <button class="qty-btn" onclick="restockAdjust('${p.name.replace(/'/g,"\\'")}',1)">+</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('')}
+    <div class="btn-stack">
+      <button class="btn btn-secondary" onclick="copyList()">
+        📋 Copier la liste
+      </button>
+      <button class="btn btn-danger" onclick="resetRestock()">
+        Vider la liste
+      </button>
+    </div>
+  `;
+}
+
+function restockAdjust(name, delta){
+  state.restock[name] = (state.restock[name] || 0) + delta;
+  if(state.restock[name] <= 0) delete state.restock[name];
+  saveState();
+  renderRestock();
+  renderHome();
+}
+
+function copyList(){
+  const items = Object.entries(state.restock).filter(([k,v])=>v>0);
+  const text = items.map(([name,qty])=>`${qty}× ${name}`).join('\n');
+  navigator.clipboard.writeText(text).then(()=>toast('Liste copiée ✓'));
+}
+
+function resetRestock(){
+  if(!confirm('Vider toute la liste de réassort ?')) return;
+  state.restock = {};
+  state.scans = {};
+  saveState();
+  renderRestock();
+  renderHome();
+  toast('Liste vidée');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+renderHome();
+
+// Register basic service worker for PWA-ish behavior (offline shell)
+if('serviceWorker' in navigator){
+  // Skip for file:// or non-https
+}
+</script>
+</body>
+</html>

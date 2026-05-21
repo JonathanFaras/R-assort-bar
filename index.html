@@ -416,6 +416,29 @@ body{
 
 <div id="toast" class="toast"></div>
 
+<!-- ERROR REPORT MODAL -->
+<div id="error-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;align-items:flex-end;justify-content:center" onclick="if(event.target.id==='error-modal')closeErrorReport()">
+  <div style="background:var(--bg-2);border-top:1px solid var(--border);border-radius:18px 18px 0 0;padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div style="font-family:'Fraunces',serif;font-size:19px;font-weight:600;letter-spacing:-0.01em">🚨 Signaler une erreur</div>
+      <button class="back-btn" onclick="closeErrorReport()">✕</button>
+    </div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:14px">
+      Décris précisément l'erreur de l'IA. Cette info + la photo seront stockées et injectées dans les futurs prompts pour que l'IA évite cette erreur.
+    </div>
+    <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:6px">Description de l'erreur</div>
+    <textarea id="error-comment" class="input" rows="4" placeholder="Ex: Tu as compté un bouchon Bacardi Carta Blanca comme un Absolut. Les Bacardi ont une chauve-souris rouge sur le bouchon."></textarea>
+    <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:6px;margin-top:6px">Produit concerné (optionnel)</div>
+    <select id="error-product" class="input">
+      <option value="">— Aucun en particulier —</option>
+    </select>
+    <div class="btn-stack" style="margin-top:14px">
+      <button class="btn" onclick="saveErrorReport()">💾 Enregistrer cette erreur</button>
+      <button class="btn btn-secondary" onclick="closeErrorReport()">Annuler</button>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -708,9 +731,13 @@ function renderSectionInit(){
       </div>
     </div>
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
+    <input type="file" id="photo-import" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
     <div class="btn-stack">
       <button class="btn" onclick="document.getElementById('photo-input').click()">
         <span class="btn-icon">📷</span> Prendre la photo
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('photo-import').click()">
+        <span class="btn-icon">🖼️</span> Importer depuis la galerie
       </button>
       <button class="btn btn-secondary" onclick="manualEntry()">
         ✏️ Saisir manuellement
@@ -771,11 +798,15 @@ function onPhotoSelected(event){
 // ============================================================
 function buildLearningsBlock(zoneType){
   const lessons = state.learnings[zoneType] || [];
-  if(lessons.length < 2) return '';
+  if(lessons.length === 0) return '';
 
-  // Aggréger par produit
+  // Séparer auto (deltas) et detailed (commentaires user)
+  const autoLessons = lessons.filter(l=>l.type !== 'detailed');
+  const detailedLessons = lessons.filter(l=>l.type === 'detailed').slice(-10); // 10 derniers
+
+  // 1. Agréger les autos par produit pour patterns statistiques
   const byProduct = {};
-  lessons.forEach(l=>{
+  autoLessons.forEach(l=>{
     if(!byProduct[l.productName]) byProduct[l.productName] = {deltas:[], count:0};
     byProduct[l.productName].deltas.push(l.delta);
     byProduct[l.productName].count++;
@@ -795,14 +826,23 @@ function buildLearningsBlock(zoneType){
     }
   });
 
-  if(insights.length === 0) return '';
+  // 2. Lister les erreurs détaillées signalées
+  const detailedTexts = detailedLessons.map(l=>{
+    const prodPart = l.productName ? ` (concernant ${l.productName})` : '';
+    return `- ${l.userComment}${prodPart}`;
+  });
 
-  return `
+  if(insights.length === 0 && detailedTexts.length === 0) return '';
 
-RETOUR D'EXPÉRIENCE — LEÇONS APPRISES DE TES ERREURS PASSÉES SUR CE BAR:
-${insights.join('\n')}
-
-Tiens compte de ces patterns pour éviter de répéter les mêmes erreurs.`;
+  let block = '\n\nRETOUR D\'EXPÉRIENCE — ERREURS PASSÉES SUR CE BAR:';
+  if(insights.length > 0){
+    block += '\n\nPATTERNS STATISTIQUES:\n' + insights.join('\n');
+  }
+  if(detailedTexts.length > 0){
+    block += '\n\nERREURS PRÉCISES SIGNALÉES PAR L\'UTILISATEUR:\n' + detailedTexts.join('\n');
+  }
+  block += '\n\nTiens compte de ces patterns et erreurs pour éviter de les répéter.';
+  return block;
 }
 
 async function analyzePhoto(){
@@ -976,6 +1016,9 @@ function renderValidationUI(){
       <button class="btn btn-secondary" onclick="${currentSection.isBin ? 'renderBinInit()' : 'renderSectionInit()'}">
         Reprendre une photo
       </button>
+      <button class="btn btn-danger" onclick="openErrorReport()">
+        🚨 Signaler une erreur précise
+      </button>
     </div>
   `;
 }
@@ -985,12 +1028,21 @@ function escapeHtml(s){
 }
 
 function renderValidationItem(r, i){
+  const target = r.isBin ? r.min : 3;
+  const excess = Math.max(0, r.detected - target); // surplus si IA a sur-compté
   let dotClass = 'ok';
-  if(r.missing === 0) dotClass = 'ok';
-  else if(r.missing < (r.isBin ? r.min : 3)) dotClass = 'warn';
-  else dotClass = 'bad';
+  if(r.missing === 0 && excess === 0) dotClass = 'ok';
+  else if(excess > 0) dotClass = 'warn'; // sur-comptage = orange
+  else if(r.missing >= target) dotClass = 'bad';
+  else dotClass = 'warn';
 
   const confLabel = r.confidence === 'high' ? '' : r.confidence === 'medium' ? ' • IA: moyenne' : r.confidence === 'manual' ? ' • Manuel' : ' • IA: incertain';
+
+  const statusLine = excess > 0
+    ? `<span style="color:var(--warn)">⚠ ${excess} en trop</span>`
+    : r.missing > 0
+      ? `<span style="color:var(--danger)">Manque ${r.missing}</span>`
+      : `<span style="color:var(--ok)">✓ OK</span>`;
 
   if(r.isBin){
     return `
@@ -1007,12 +1059,12 @@ function renderValidationItem(r, i){
         </div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
           <div>
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Manque</div>
-            <div style="font-size:13px;color:var(--text-2);margin-top:2px">Détecté: ${r.detected}/${r.min}</div>
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Présent en bac</div>
+            <div style="font-size:13px;color:var(--text-2);margin-top:2px">${statusLine}</div>
           </div>
           <div class="qty-controls">
             <button class="qty-btn" onclick="adjustQty(${i},-1)">−</button>
-            <div class="qty-num">${r.missing}</div>
+            <div class="qty-num">${r.detected}</div>
             <button class="qty-btn" onclick="adjustQty(${i},1)">+</button>
           </div>
         </div>
@@ -1034,12 +1086,12 @@ function renderValidationItem(r, i){
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
         <div>
-          <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Manque</div>
-          <div style="font-size:13px;color:var(--text-2);margin-top:2px">Présent: ${r.detected}/3</div>
+          <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Présent</div>
+          <div style="font-size:13px;color:var(--text-2);margin-top:2px">${statusLine}</div>
         </div>
         <div class="qty-controls">
           <button class="qty-btn" onclick="adjustQty(${i},-1)">−</button>
-          <div class="qty-num">${r.missing}</div>
+          <div class="qty-num">${r.detected}</div>
           <button class="qty-btn" onclick="adjustQty(${i},1)">+</button>
         </div>
       </div>
@@ -1049,9 +1101,11 @@ function renderValidationItem(r, i){
 
 function adjustQty(idx, delta){
   const r = currentResults[idx];
-  const maxMissing = r.isBin ? r.min : 3;
-  r.missing = Math.max(0, Math.min(maxMissing, r.missing + delta));
-  r.detected = (r.isBin ? r.min : 3) - r.missing;
+  const target = r.isBin ? r.min : 3;
+  // Permet d'aller jusqu'à target*2 + 2 pour gérer les sur-comptages
+  const maxAllowed = target * 2 + 2;
+  r.detected = Math.max(0, Math.min(maxAllowed, r.detected + delta));
+  r.missing = Math.max(0, target - r.detected);
   renderValidationUI();
 }
 
@@ -1067,6 +1121,7 @@ function confirmValidation(){
       if(delta !== 0){
         // L'utilisateur a corrigé. Stocker la leçon.
         state.learnings[zoneType].push({
+          type: 'auto',
           productName: r.name,
           aiSaid: r.aiOriginalDetected,
           actualWas: r.detected,
@@ -1202,9 +1257,13 @@ function renderBinInit(){
       </div>
     </div>
     <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
+    <input type="file" id="photo-import" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
     <div class="btn-stack">
       <button class="btn" onclick="document.getElementById('photo-input').click()">
         <span class="btn-icon">📷</span> Prendre la photo
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('photo-import').click()">
+        <span class="btn-icon">🖼️</span> Importer depuis la galerie
       </button>
       <button class="btn btn-secondary" onclick="manualEntry()">
         ✏️ Saisir manuellement
@@ -1439,10 +1498,11 @@ function showLearnings(){
   const counter = state.learnings.counter || [];
   const bin = state.learnings.bin || [];
 
-  // Aggregation pour affichage
+  // Aggregation pour patterns auto-collectés (delta-based)
   function aggregate(lessons){
+    const autos = lessons.filter(l=>l.type !== 'detailed');
     const byProduct = {};
-    lessons.forEach(l=>{
+    autos.forEach(l=>{
       if(!byProduct[l.productName]) byProduct[l.productName] = {deltas:[], count:0, lastTime:0};
       byProduct[l.productName].deltas.push(l.delta);
       byProduct[l.productName].count++;
@@ -1456,8 +1516,14 @@ function showLearnings(){
       .sort((a,b)=>Math.abs(b.avg)-Math.abs(a.avg));
   }
 
+  function getDetailedErrors(lessons){
+    return lessons.filter(l=>l.type === 'detailed').sort((a,b)=>b.timestamp-a.timestamp);
+  }
+
   const counterAgg = aggregate(counter);
   const binAgg = aggregate(bin);
+  const counterDetailed = getDetailedErrors(counter);
+  const binDetailed = getDetailedErrors(bin);
 
   const renderInsight = (insight)=>{
     const dir = insight.avg < 0 ? 'sur-comptait' : 'sous-comptait';
@@ -1476,6 +1542,22 @@ function showLearnings(){
     `;
   };
 
+  const renderDetailed = (err)=>{
+    const date = new Date(err.timestamp);
+    const ts = date.toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    return `
+      <div class="restock-item" style="display:block">
+        <div style="display:flex;gap:10px;margin-bottom:6px">
+          ${err.photoThumb ? `<img src="${err.photoThumb}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0">` : ''}
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">${ts}${err.productName ? ` • ${escapeHtml(err.productName)}` : ''}</div>
+            <div style="font-size:13px;color:var(--text);margin-top:3px;line-height:1.4">${escapeHtml(err.userComment)}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
   document.getElementById('restock-content').innerHTML = `
     <div style="margin-bottom:14px">
       <button class="back-btn" onclick="renderRestock()">←</button>
@@ -1487,20 +1569,34 @@ function showLearnings(){
     </div>
     <div style="background:rgba(200,150,87,0.05);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12px;line-height:1.5;color:var(--text-2)">
       <strong style="color:var(--accent)">Comment ça marche :</strong><br>
-      À chaque fois que tu corriges l'IA en ajustant les quantités, on enregistre l'erreur. Quand un produit accumule au moins 2 corrections avec un pattern clair, on injecte cette leçon dans les futurs prompts. L'IA devient progressivement plus précise sur ton bar.
+      Tes ajustements automatiques et tes erreurs signalées sont injectés dans les futurs prompts. L'IA devient progressivement plus précise sur ton bar.
     </div>
 
+    ${counterDetailed.length > 0 ? `
+      <div class="section-title">Comptoir — Erreurs signalées</div>
+      <div class="cat-group"><div class="cat-items">
+        ${counterDetailed.slice(0,10).map(renderDetailed).join('')}
+      </div></div>
+    ` : ''}
+
     ${counterAgg.length > 0 ? `
-      <div class="section-title">Comptoir — Patterns détectés</div>
+      <div class="section-title">Comptoir — Patterns auto-détectés</div>
       <div class="cat-group">
         <div class="cat-items">
-          ${counterAgg.filter(i=>Math.abs(i.avg)>=0.5).slice(0,15).map(renderInsight).join('') || '<div style="padding:14px;color:var(--text-3);font-size:13px;text-align:center">Pas encore de pattern significatif (besoin d\'au moins 2 corrections par produit)</div>'}
+          ${counterAgg.filter(i=>Math.abs(i.avg)>=0.5).slice(0,15).map(renderInsight).join('') || '<div style="padding:14px;color:var(--text-3);font-size:13px;text-align:center">Pas encore de pattern significatif</div>'}
         </div>
       </div>
     ` : ''}
 
+    ${binDetailed.length > 0 ? `
+      <div class="section-title">Bacs blancs — Erreurs signalées</div>
+      <div class="cat-group"><div class="cat-items">
+        ${binDetailed.slice(0,10).map(renderDetailed).join('')}
+      </div></div>
+    ` : ''}
+
     ${binAgg.length > 0 ? `
-      <div class="section-title">Bacs blancs — Patterns détectés</div>
+      <div class="section-title">Bacs blancs — Patterns auto-détectés</div>
       <div class="cat-group">
         <div class="cat-items">
           ${binAgg.filter(i=>Math.abs(i.avg)>=0.5).slice(0,15).map(renderInsight).join('') || '<div style="padding:14px;color:var(--text-3);font-size:13px;text-align:center">Pas encore de pattern significatif</div>'}
@@ -1511,7 +1607,7 @@ function showLearnings(){
     ${counter.length === 0 && bin.length === 0 ? `
       <div class="empty">
         <div class="empty-icon">🧠</div>
-        <div class="empty-text">Aucune correction enregistrée pour l'instant.<br><span style="font-size:12px;color:var(--text-3)">Corrige l'IA en ajustant les quantités lors d'un scan, et l'apprentissage se construira ici.</span></div>
+        <div class="empty-text">Aucune correction enregistrée pour l'instant.<br><span style="font-size:12px;color:var(--text-3)">Corrige l'IA en ajustant les quantités ou en signalant une erreur précise lors d'un scan.</span></div>
       </div>
     ` : ''}
 
@@ -1528,6 +1624,85 @@ function resetLearnings(){
   saveState();
   toast('Leçons réinitialisées');
   renderRestock();
+}
+
+// ============================================================
+// ERROR REPORTING (signaler une erreur précise)
+// ============================================================
+function openErrorReport(){
+  const modal = document.getElementById('error-modal');
+  document.getElementById('error-comment').value = '';
+  // Populate product dropdown
+  const select = document.getElementById('error-product');
+  const products = currentResults.map(r=>r.name);
+  // Dedupe
+  const uniqueProducts = [...new Set(products)];
+  select.innerHTML = '<option value="">— Aucun en particulier —</option>' +
+    uniqueProducts.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+  modal.style.display = 'flex';
+}
+
+function closeErrorReport(){
+  document.getElementById('error-modal').style.display = 'none';
+}
+
+async function saveErrorReport(){
+  const comment = document.getElementById('error-comment').value.trim();
+  const product = document.getElementById('error-product').value;
+  if(!comment){
+    toast('Merci de décrire l\'erreur');
+    return;
+  }
+
+  const zoneType = currentSection.isBin ? 'bin' : 'counter';
+
+  // Créer thumbnail de la photo (256px max, JPEG 50%)
+  let photoThumb = '';
+  if(currentPhoto){
+    try {
+      photoThumb = await createThumbnail(currentPhoto, 384, 0.5);
+    } catch(e){ console.warn('Thumb failed', e); }
+  }
+
+  state.learnings[zoneType].push({
+    type: 'detailed',
+    productName: product || null,
+    userComment: comment,
+    photoThumb: photoThumb,
+    timestamp: Date.now(),
+  });
+
+  // Limiter à 50 erreurs détaillées par zone (pour ne pas exploser localStorage)
+  const detailedOnly = state.learnings[zoneType].filter(l=>l.type==='detailed');
+  if(detailedOnly.length > 20){
+    // Garder seulement les 20 dernières erreurs détaillées
+    const autoOnly = state.learnings[zoneType].filter(l=>l.type!=='detailed');
+    state.learnings[zoneType] = [...autoOnly, ...detailedOnly.slice(-20)];
+  }
+
+  saveState();
+  closeErrorReport();
+  toast('Erreur enregistrée ✓ L\'IA en tiendra compte');
+}
+
+function createThumbnail(dataUrl, maxSize, quality){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.width, h = img.height;
+      if(w > maxSize || h > maxSize){
+        if(w > h){ h = h * (maxSize/w); w = maxSize; }
+        else { w = w * (maxSize/h); h = maxSize; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL('image/jpeg', quality));
+    };
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
 }
 
 function restockAdjust(name, delta){

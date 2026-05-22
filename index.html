@@ -575,15 +575,25 @@ const ALL_SCANNABLES = [...SECTIONS, ...BINS];
 // ============================================================
 let state = {
   apiKey: localStorage.getItem('gemini_key') || '',
+  roboflowKey: localStorage.getItem('roboflow_key') || '',
+  binProvider: localStorage.getItem('bin_provider') || 'gemini', // 'gemini' ou 'roboflow'
   scans: JSON.parse(localStorage.getItem('scans') || '{}'),
   restock: JSON.parse(localStorage.getItem('restock') || '{}'),
   learnings: JSON.parse(localStorage.getItem('learnings') || '{"counter":[],"bin":[]}'),
+};
+
+// Configuration Roboflow
+const ROBOFLOW_CONFIG = {
+  workspace: 'jojo-s-workspace',
+  project: 'bac-blanc',
+  version: 4,
 };
 
 function saveState(){
   localStorage.setItem('scans', JSON.stringify(state.scans));
   localStorage.setItem('restock', JSON.stringify(state.restock));
   localStorage.setItem('learnings', JSON.stringify(state.learnings));
+  localStorage.setItem('bin_provider', state.binProvider);
 }
 
 // ============================================================
@@ -1314,7 +1324,12 @@ function openBin(binId){
 }
 
 function renderBinInit(){
+  const providerLabel = (state.binProvider === 'roboflow' && state.roboflowKey)
+    ? `<div style="display:inline-block;background:rgba(126,201,126,0.15);color:var(--ok);font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;letter-spacing:0.04em;margin-bottom:12px">🎯 MODÈLE ROBOFLOW</div>`
+    : `<div style="display:inline-block;background:rgba(200,150,87,0.15);color:var(--accent);font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;letter-spacing:0.04em;margin-bottom:12px">🤖 GEMINI</div>`;
+
   document.getElementById('section-content').innerHTML = `
+    ${providerLabel}
     <div class="photo-preview" id="photo-preview">
       <div class="photo-placeholder">
         <div class="photo-placeholder-icon">📷</div>
@@ -1350,6 +1365,91 @@ function renderBinInit(){
 }
 
 async function analyzeBinPhoto(){
+  if(state.binProvider === 'roboflow' && state.roboflowKey){
+    return analyzeBinPhotoRoboflow();
+  }
+  return analyzeBinPhotoGemini();
+}
+
+// Mapping classes Roboflow → noms de produits dans l'app
+const ROBOFLOW_CLASS_MAP = {
+  'absolut': 'Absolut Vodka',
+  'beefeater': 'Beefeater',
+  'bacardi_carta_blanca': 'Bacardi Carta Blanca',
+  'el_jimador': 'El Jimador Tequila',
+  'jameson': 'Jameson',
+  'jack_daniels': "Jack Daniel's",
+  'creme_peche': 'Crème de Pêche Giffard',
+  'triple_sec': 'Triple Sec Giffard',
+};
+
+async function analyzeBinPhotoRoboflow(){
+  if(!currentPhoto) return;
+
+  document.getElementById('section-content').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Analyse via ton modèle Roboflow...<br><span style="color:var(--text-3);font-size:12px">(2-5s)</span></div>
+    </div>
+  `;
+
+  try {
+    // Extract base64 sans le prefix data:image/...;base64,
+    const base64 = currentPhoto.split(',')[1];
+
+    // Roboflow accepte direct le base64 dans le body
+    const url = `https://detect.roboflow.com/${ROBOFLOW_CONFIG.project}/${ROBOFLOW_CONFIG.version}?api_key=${state.roboflowKey}&confidence=30&overlap=50`;
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: base64
+    });
+
+    if(!response.ok){
+      const err = await response.text();
+      throw new Error(`Roboflow ${response.status}: ${err.substring(0,200)}`);
+    }
+
+    const data = await response.json();
+    // data.predictions = [{class:"absolut", confidence:0.94, x:..., y:...}, ...]
+
+    // Compter par classe
+    const counts = {};
+    (data.predictions || []).forEach(p=>{
+      const productName = ROBOFLOW_CLASS_MAP[p.class] || p.class;
+      counts[productName] = (counts[productName] || 0) + 1;
+    });
+
+    // Construire les résultats au format attendu
+    const products = BIN_PRODUCTS.map(p=>({
+      name: p.name,
+      detected: counts[p.name] || 0,
+      confidence: 'high', // Roboflow donne déjà la confiance par détection
+      note: `${counts[p.name] || 0} détection${(counts[p.name]||0)>1?'s':''} via ton modèle (${data.predictions?.length || 0} bouteilles totales)`,
+    }));
+
+    const reasoning = `Modèle Roboflow "bac-blanc v${ROBOFLOW_CONFIG.version}" — ${data.predictions?.length || 0} bouteille(s) détectée(s) sur la photo. Temps de traitement: ${data.time ? data.time.toFixed(2) + 's' : '~2s'}.`;
+
+    renderBinValidation(products, reasoning);
+
+  } catch(e){
+    console.error(e);
+    document.getElementById('section-content').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-text">Erreur Roboflow:<br><span style="color:var(--danger);font-size:12px">${e.message}</span></div>
+        <div class="btn-stack" style="max-width:300px;margin:20px auto">
+          <button class="btn" onclick="renderBinInit()">Réessayer</button>
+          <button class="btn btn-secondary" onclick="state.binProvider='gemini'; saveState(); analyzeBinPhotoGemini()">Basculer sur Gemini</button>
+          <button class="btn btn-secondary" onclick="manualEntry()">Saisir manuellement</button>
+        </div>
+      </div>
+    `;
+  }
+}
+
+async function analyzeBinPhotoGemini(){
   if(!currentPhoto) return;
 
   document.getElementById('section-content').innerHTML = `
@@ -1541,6 +1641,9 @@ function renderRestock(){
       <button class="btn btn-secondary" onclick="showLearnings()">
         🧠 Voir les leçons IA (${(state.learnings.counter.length + state.learnings.bin.length)})
       </button>
+      <button class="btn btn-secondary" onclick="showSettings()">
+        ⚙️ Réglages (modèle IA, clés API)
+      </button>
       <button class="btn btn-danger" onclick="resetRestock()">
         Vider la liste
       </button>
@@ -1678,6 +1781,112 @@ function resetLearnings(){
   saveState();
   toast('Leçons réinitialisées');
   renderRestock();
+}
+
+// ============================================================
+// SETTINGS (réglages IA + clés API)
+// ============================================================
+function showSettings(){
+  const hasRoboflow = !!state.roboflowKey;
+  const provider = state.binProvider || 'gemini';
+
+  document.getElementById('restock-content').innerHTML = `
+    <div style="margin-bottom:14px">
+      <button class="back-btn" onclick="renderRestock()">←</button>
+    </div>
+
+    <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px">Réglages</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:20px">Choisis le modèle d'IA utilisé pour les bacs blancs et gère tes clés API.</div>
+
+    <div class="section-title">Modèle IA pour les bacs blancs</div>
+
+    <div class="card scan-card ${provider==='gemini'?'partial':''}" onclick="setProvider('gemini')" style="cursor:pointer">
+      <div class="card-row">
+        <div>
+          <div class="card-title">${provider==='gemini'?'● ':'○ '}Gemini Vision (Google)</div>
+          <div class="card-sub" style="margin-top:4px">Modèle généraliste — gratuit ~250 req/jour</div>
+          <div class="card-sub" style="color:var(--text-3);margin-top:2px">Précision: variable selon photo. Erreurs possibles.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card scan-card ${provider==='roboflow'?'partial':''}" onclick="tryRoboflowMode()" style="cursor:pointer">
+      <div class="card-row">
+        <div>
+          <div class="card-title">${provider==='roboflow'?'● ':'○ '}Ton modèle Roboflow ${hasRoboflow?'':'<span style="color:var(--text-3);font-size:11px">(non configuré)</span>'}</div>
+          <div class="card-sub" style="margin-top:4px">Modèle <i>bac-blanc v${ROBOFLOW_CONFIG.version}</i> — gratuit 1000 req/mois</div>
+          <div class="card-sub" style="color:var(--text-3);margin-top:2px">Précision: spécifique à ton bar. Améliore avec plus de photos annotées.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-title">Clé API Roboflow</div>
+    <div style="background:rgba(200,150,87,0.05);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.5;color:var(--text-2)">
+      <strong style="color:var(--accent)">Où la trouver :</strong><br>
+      Sur Roboflow → Settings (icône ⚙️ en bas à gauche) → API Keys → copie la clé <b>Private</b>. Elle ressemble à <code style="background:var(--bg-3);padding:1px 4px;border-radius:3px">rf_xxxxxxxxxxxx</code> ou similaire.
+    </div>
+    <input type="password" id="roboflow-key-input" class="input" placeholder="${hasRoboflow ? '••••••••• (clé enregistrée)' : 'Colle ta clé Roboflow ici'}" autocomplete="off">
+    <button class="btn" onclick="saveRoboflowKey()">${hasRoboflow ? 'Mettre à jour' : 'Enregistrer la clé'}</button>
+    ${hasRoboflow ? `<button class="btn btn-secondary" style="margin-top:8px" onclick="removeRoboflowKey()">Supprimer la clé Roboflow</button>` : ''}
+
+    <div class="section-title">Clé API Gemini</div>
+    <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">${state.apiKey ? '✓ Configurée' : 'Non configurée'}</div>
+    <button class="btn btn-secondary" onclick="resetGeminiKey()">Changer la clé Gemini</button>
+
+    <div class="btn-stack" style="margin-top:30px">
+      <button class="btn btn-secondary" onclick="renderRestock()">← Retour</button>
+    </div>
+  `;
+}
+
+function setProvider(p){
+  state.binProvider = p;
+  saveState();
+  toast(p === 'roboflow' ? 'Mode Roboflow activé ✓' : 'Mode Gemini activé ✓');
+  showSettings();
+}
+
+function tryRoboflowMode(){
+  if(!state.roboflowKey){
+    toast('Configure d\'abord ta clé Roboflow ci-dessous');
+    return;
+  }
+  setProvider('roboflow');
+}
+
+function saveRoboflowKey(){
+  const v = document.getElementById('roboflow-key-input').value.trim();
+  if(!v){
+    toast('Colle ta clé d\'abord');
+    return;
+  }
+  localStorage.setItem('roboflow_key', v);
+  state.roboflowKey = v;
+  // Si on configure Roboflow pour la 1ère fois, on bascule auto en mode Roboflow
+  if(state.binProvider !== 'roboflow'){
+    state.binProvider = 'roboflow';
+    saveState();
+  }
+  toast('Clé Roboflow enregistrée ✓ Mode Roboflow activé');
+  showSettings();
+}
+
+function removeRoboflowKey(){
+  if(!confirm('Supprimer la clé Roboflow ? L\'app rebasculera sur Gemini pour les bacs.')) return;
+  localStorage.removeItem('roboflow_key');
+  state.roboflowKey = '';
+  state.binProvider = 'gemini';
+  saveState();
+  toast('Clé supprimée');
+  showSettings();
+}
+
+function resetGeminiKey(){
+  if(!confirm('Vider la clé Gemini ? Tu devras la recoller au prochain lancement.')) return;
+  localStorage.removeItem('gemini_key');
+  state.apiKey = '';
+  toast('Clé Gemini supprimée');
+  renderHome();
 }
 
 // ============================================================

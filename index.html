@@ -16,15 +16,23 @@
   --bg:#0a0a0a;
   --bg-2:#141414;
   --bg-3:#1c1c1c;
-  --border:#2a2a2a;
+  --bg-card:rgba(255,255,255,0.04);
+  --bg-card-hover:rgba(255,255,255,0.07);
+  --border:rgba(255,255,255,0.08);
+  --border-strong:rgba(255,255,255,0.15);
   --text:#f5f0e6;
   --text-2:#a0958a;
   --text-3:#666058;
   --accent:#c89657;
-  --accent-2:#e8b974;
+  --accent-light:#e8b974;
+  --accent-glow:rgba(200,150,87,0.25);
   --danger:#e85c52;
+  --danger-glow:rgba(232,92,82,0.18);
+  --danger-bg:rgba(232,92,82,0.08);
   --warn:#e8b974;
   --ok:#7ec97e;
+  --ok-glow:rgba(126,201,126,0.18);
+  --ok-bg:rgba(126,201,126,0.06);
 }
 html,body{height:100%;overflow-x:hidden}
 body{
@@ -41,27 +49,57 @@ body{
 /* HEADER */
 .header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 18px;
-  border-bottom:1px solid var(--border);
+  padding:18px 18px 12px;
   background:var(--bg);
   position:sticky;top:0;z-index:10;
 }
 .header h1{
   font-family:'Fraunces',serif;
   font-weight:600;
-  font-size:22px;
+  font-size:24px;
   letter-spacing:-0.02em;
 }
 .header h1 span{color:var(--accent)}
 .badge{
   background:var(--accent);color:#000;
-  font-weight:700;font-size:11px;
-  padding:3px 8px;border-radius:100px;
+  font-weight:700;font-size:12px;
+  padding:4px 10px;border-radius:100px;
   letter-spacing:0.04em;
 }
 
+/* TOGGLE PILL (Comptoir / Bacs) */
+.toggle-group{
+  display:flex;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-radius:100px;
+  padding:4px;
+  margin:0 18px 16px;
+  position:relative;
+}
+.toggle-btn{
+  flex:1;
+  padding:12px 16px;
+  background:transparent;
+  border:none;
+  color:var(--text-2);
+  font-family:inherit;
+  font-weight:600;
+  font-size:14px;
+  border-radius:100px;
+  cursor:pointer;
+  transition:all 0.25s ease;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  letter-spacing:0.01em;
+}
+.toggle-btn.active{
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%);
+  color:#1a0f02;
+  box-shadow:0 4px 16px var(--accent-glow);
+}
+
 /* CONTENT */
-.content{flex:1;padding:18px;padding-bottom:120px}
+.content{flex:1;padding:0 18px;padding-bottom:140px}
 
 .section-title{
   font-family:'Fraunces',serif;
@@ -69,101 +107,132 @@ body{
   text-transform:uppercase;
   letter-spacing:0.15em;
   color:var(--text-3);
-  margin:24px 0 12px;
+  margin:18px 0 10px;
   font-weight:600;
 }
-.section-title:first-child{margin-top:0}
 
-/* CARDS */
-.card{
-  background:var(--bg-2);
+/* SECTION/BIN CARDS */
+.zone-card{
+  background:var(--bg-card);
   border:1px solid var(--border);
-  border-radius:14px;
-  padding:16px;
+  border-radius:16px;
+  padding:16px 18px;
   margin-bottom:10px;
   cursor:pointer;
   transition:all 0.2s ease;
+  position:relative;
+  overflow:hidden;
 }
-.card:active{transform:scale(0.98);background:var(--bg-3)}
-.card-row{display:flex;align-items:center;justify-content:space-between}
-.card-title{font-weight:600;font-size:16px;letter-spacing:-0.01em}
-.card-sub{font-size:13px;color:var(--text-2);margin-top:3px}
-.card-arrow{color:var(--text-3);font-size:20px}
+.zone-card:active{transform:scale(0.98);background:var(--bg-card-hover)}
+.zone-card.has-missing{
+  background:linear-gradient(135deg,var(--danger-bg) 0%,transparent 80%);
+  border-color:rgba(232,92,82,0.25);
+}
+.zone-card.complete{
+  background:linear-gradient(135deg,var(--ok-bg) 0%,transparent 80%);
+  border-color:rgba(126,201,126,0.18);
+}
+.zone-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.zone-info{flex:1;min-width:0}
+.zone-title{font-weight:700;font-size:16px;letter-spacing:-0.01em}
+.zone-title.vip::after{content:" ★";color:var(--accent)}
+.zone-desc{font-size:12px;color:var(--text-3);margin-top:2px}
+.zone-status{font-size:12px;font-weight:600;margin-top:4px;display:flex;align-items:center;gap:6px}
+.zone-status.ok{color:var(--ok)}
+.zone-status.warn{color:var(--danger)}
+.zone-status.neutral{color:var(--text-2)}
+.zone-arrow{
+  color:var(--text-3);
+  font-size:22px;
+  flex-shrink:0;
+}
 
-.scan-card{
-  background:linear-gradient(135deg,#1c1410 0%,#0a0a0a 100%);
+/* SUMMARY CARD */
+.summary-card{
+  background:linear-gradient(135deg,rgba(200,150,87,0.08) 0%,rgba(200,150,87,0.02) 100%);
   border:1px solid var(--border);
-}
-.scan-card.done{
-  border-color:var(--ok);
-  opacity:0.75;
-}
-.scan-card.partial{border-color:var(--accent)}
-
-/* RESTOCK LIST */
-.restock-summary{
-  background:linear-gradient(135deg,#1a1410 0%,#0f0c08 100%);
-  border:1px solid var(--accent);
-  border-radius:14px;
-  padding:18px;
+  border-radius:18px;
+  padding:20px;
   margin-bottom:18px;
-}
-.restock-summary-label{
-  font-size:11px;text-transform:uppercase;letter-spacing:0.15em;
-  color:var(--accent);font-weight:600;
-}
-.restock-summary-num{
-  font-family:'Fraunces',serif;
-  font-size:42px;line-height:1;
-  font-weight:600;margin-top:8px;letter-spacing:-0.03em;
-}
-.restock-summary-sub{font-size:13px;color:var(--text-2);margin-top:6px}
-
-.restock-item{
-  display:flex;justify-content:space-between;align-items:center;
-  padding:14px 16px;
-  background:var(--bg-2);
-  border:1px solid var(--border);
-  border-radius:12px;
-  margin-bottom:8px;
-}
-.restock-item-name{font-weight:600;font-size:15px}
-.restock-item-detail{font-size:12px;color:var(--text-3);margin-top:2px}
-.qty-controls{display:flex;align-items:center;gap:10px}
-.qty-btn{
-  width:34px;height:34px;border-radius:50%;
-  background:var(--bg-3);border:1px solid var(--border);
-  color:var(--text);font-size:18px;font-weight:600;
-  display:flex;align-items:center;justify-content:center;
   cursor:pointer;
+  transition:all 0.2s ease;
 }
-.qty-btn:active{background:var(--border)}
-.qty-num{font-weight:700;font-size:18px;min-width:24px;text-align:center;font-family:'Fraunces',serif}
+.summary-card:active{transform:scale(0.99)}
+.summary-label{
+  font-size:11px;text-transform:uppercase;letter-spacing:0.15em;
+  color:var(--accent);font-weight:700;
+}
+.summary-num{
+  font-family:'Fraunces',serif;
+  font-size:48px;line-height:1;
+  font-weight:600;margin-top:10px;letter-spacing:-0.03em;
+  color:var(--text);
+}
+.summary-num.zero{color:var(--ok)}
+.summary-sub{font-size:13px;color:var(--text-2);margin-top:8px}
 
 /* BUTTONS */
 .btn{
   display:flex;align-items:center;justify-content:center;gap:8px;
   width:100%;
-  padding:16px;
-  background:var(--accent);
-  color:#000;
-  border:none;border-radius:12px;
+  padding:15px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%);
+  color:#1a0f02;
+  border:none;border-radius:14px;
   font-family:inherit;font-weight:700;font-size:15px;
   cursor:pointer;
   letter-spacing:0.02em;
+  box-shadow:0 4px 16px var(--accent-glow);
+  transition:transform 0.15s ease;
 }
-.btn:active{background:var(--accent-2)}
-.btn-secondary{background:var(--bg-3);color:var(--text);border:1px solid var(--border)}
-.btn-secondary:active{background:var(--border)}
-.btn-danger{background:transparent;color:var(--danger);border:1px solid var(--danger)}
+.btn:active{transform:scale(0.98)}
+.btn-secondary{
+  background:var(--bg-card);
+  color:var(--text);
+  border:1px solid var(--border);
+  box-shadow:none;
+}
+.btn-secondary:active{background:var(--bg-card-hover)}
+.btn-danger{
+  background:transparent;
+  color:var(--danger);
+  border:1px solid rgba(232,92,82,0.4);
+  box-shadow:none;
+}
+.btn-danger:active{background:var(--danger-bg)}
 .btn-icon{font-size:18px}
-
 .btn-stack{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+
+/* BIG SCAN BUTTON (in zone screen) */
+.btn-scan{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;
+  padding:18px;
+  background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%);
+  color:#1a0f02;
+  border:none;border-radius:16px;
+  font-family:inherit;font-weight:700;font-size:16px;
+  cursor:pointer;
+  letter-spacing:0.02em;
+  box-shadow:0 8px 24px var(--accent-glow);
+  margin-bottom:6px;
+  transition:transform 0.15s ease;
+}
+.btn-scan:active{transform:scale(0.98)}
+.scan-secondary{
+  display:flex;gap:10px;margin-bottom:16px;
+}
+.scan-secondary .btn{
+  padding:11px;
+  font-size:13px;
+}
 
 /* BOTTOM TAB BAR */
 .tabs{
   position:fixed;bottom:0;left:0;right:0;
-  background:var(--bg);
+  background:rgba(10,10,10,0.92);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
   border-top:1px solid var(--border);
   display:flex;justify-content:space-around;
   padding:10px 0 calc(10px + env(safe-area-inset-bottom));
@@ -173,16 +242,17 @@ body{
 .tab{
   flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;
   padding:6px;
-  font-size:11px;font-weight:600;
+  font-size:10px;font-weight:600;
   color:var(--text-3);
   background:none;border:none;cursor:pointer;
   font-family:inherit;
   text-transform:uppercase;letter-spacing:0.08em;
+  transition:color 0.2s ease;
 }
 .tab.active{color:var(--accent)}
 .tab-icon{font-size:22px}
 
-/* MODAL / SCREEN */
+/* SCREEN (overlay views) */
 .screen{
   position:fixed;inset:0;
   background:var(--bg);
@@ -197,31 +267,46 @@ body{
   display:flex;align-items:center;gap:14px;
   padding:14px 18px;
   border-bottom:1px solid var(--border);
+  background:var(--bg);
 }
-.screen-title{font-family:'Fraunces',serif;font-size:19px;font-weight:600;letter-spacing:-0.01em;flex:1}
+.screen-title{font-family:'Fraunces',serif;font-size:20px;font-weight:600;letter-spacing:-0.01em;flex:1}
+.screen-title.vip::after{content:" ★";color:var(--accent)}
 .back-btn{
-  background:var(--bg-2);border:1px solid var(--border);
-  width:36px;height:36px;border-radius:50%;
+  background:var(--bg-card);border:1px solid var(--border);
+  width:38px;height:38px;border-radius:50%;
   color:var(--text);font-size:18px;
   display:flex;align-items:center;justify-content:center;cursor:pointer;
+  flex-shrink:0;
 }
-.screen-body{flex:1;overflow-y:auto;padding:18px;padding-bottom:120px}
+.back-btn:active{background:var(--bg-card-hover)}
+.screen-body{flex:1;overflow-y:auto;padding:16px 18px 140px;-webkit-overflow-scrolling:touch}
 
-/* PHOTO CAPTURE */
+/* PROVIDER BADGE */
+.provider-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:700;
+  padding:5px 10px;border-radius:100px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:14px;
+}
+.provider-badge.gemini{background:rgba(200,150,87,0.12);color:var(--accent)}
+.provider-badge.roboflow{background:rgba(126,201,126,0.12);color:var(--ok)}
+
+/* PHOTO PREVIEW */
 .photo-preview{
   width:100%;
-  aspect-ratio:3/4;
-  background:var(--bg-2);
-  border:2px dashed var(--border);
-  border-radius:14px;
+  aspect-ratio:4/3;
+  background:var(--bg-card);
+  border:1px dashed var(--border-strong);
+  border-radius:16px;
   display:flex;align-items:center;justify-content:center;
-  margin-bottom:18px;
+  margin-bottom:14px;
   overflow:hidden;
-  position:relative;
 }
 .photo-preview img{width:100%;height:100%;object-fit:cover}
-.photo-placeholder{text-align:center;padding:30px;color:var(--text-2)}
-.photo-placeholder-icon{font-size:60px;margin-bottom:10px;opacity:0.4}
+.photo-placeholder{text-align:center;padding:24px;color:var(--text-3)}
+.photo-placeholder-icon{font-size:42px;margin-bottom:8px;opacity:0.5}
+.photo-placeholder-text{font-size:13px}
 
 /* LOADING */
 .loading{display:flex;flex-direction:column;align-items:center;gap:18px;padding:40px 20px;text-align:center}
@@ -235,53 +320,190 @@ body{
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:var(--text-2);font-size:14px}
 
-/* POSITION ITEM (validation) */
-.position-item{
-  background:var(--bg-2);
+/* AI REASONING BOX */
+.reasoning{
+  background:rgba(200,150,87,0.06);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:12px;
+  padding:12px 14px;
+  margin-bottom:14px;
+}
+.reasoning-label{
+  font-size:10px;color:var(--accent);font-weight:700;
+  text-transform:uppercase;letter-spacing:0.15em;
+  margin-bottom:6px;
+}
+.reasoning-text{font-size:12px;color:var(--text-2);line-height:1.5}
+
+/* COMPACT PRODUCT LINE (positions/produits dans une zone) */
+.prod-line{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg-card);
   border:1px solid var(--border);
   border-radius:12px;
-  padding:14px 16px;
-  margin-bottom:8px;
+  padding:12px 14px;
+  margin-bottom:7px;
+  transition:all 0.2s ease;
+  position:relative;
 }
-.position-row{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.position-info{flex:1;min-width:0}
-.position-num{
-  font-size:11px;color:var(--text-3);font-weight:600;
+.prod-line.missing{
+  background:linear-gradient(90deg,var(--danger-bg) 0%,var(--bg-card) 60%);
+  border-color:rgba(232,92,82,0.25);
+}
+.prod-line.complete{
+  background:linear-gradient(90deg,var(--ok-bg) 0%,var(--bg-card) 60%);
+  border-color:rgba(126,201,126,0.18);
+}
+.prod-line.exception{border-left:3px solid var(--accent)}
+.prod-info{flex:1;min-width:0}
+.prod-num{
+  font-size:10px;color:var(--text-3);font-weight:600;
   text-transform:uppercase;letter-spacing:0.1em;
+  margin-bottom:2px;
 }
-.position-name{font-weight:600;font-size:14px;margin-top:2px;letter-spacing:-0.01em}
-.position-name.exception{color:var(--accent)}
-.position-status{
-  display:flex;align-items:center;gap:8px;
-  font-size:13px;font-weight:600;
+.prod-name{font-weight:600;font-size:14px;line-height:1.25;letter-spacing:-0.01em}
+.prod-name.exception-name{color:var(--accent-light)}
+.prod-ratio{
+  font-family:'Fraunces',serif;
+  font-size:15px;font-weight:600;
+  color:var(--text);
+  min-width:42px;text-align:center;
+  letter-spacing:-0.02em;
 }
-.dot{width:8px;height:8px;border-radius:50%}
-.dot.ok{background:var(--ok)}
-.dot.warn{background:var(--warn)}
-.dot.bad{background:var(--danger)}
+.prod-ratio.missing{color:var(--danger)}
+.prod-ratio.complete{color:var(--ok)}
+.qty-mini{
+  display:flex;align-items:center;gap:4px;
+  flex-shrink:0;
+}
+.qty-btn{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--bg-3);border:1px solid var(--border);
+  color:var(--text);font-size:18px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;
+  font-family:inherit;
+  transition:all 0.15s ease;
+}
+.qty-btn:active{transform:scale(0.9);background:var(--border)}
+.qty-btn.plus{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-light) 100%);color:#1a0f02;border-color:transparent}
+.qty-btn.minus{background:var(--bg-3)}
 
-/* SETUP / API KEY */
-.setup-card{
-  background:var(--bg-2);
+/* AI NOTE */
+.ai-note{
+  font-size:11px;color:var(--text-3);
+  margin-top:4px;font-style:italic;
+  line-height:1.35;
+}
+
+/* RESTOCK LIST */
+.restock-cat{
+  margin-bottom:16px;
+}
+.restock-cat-header{
+  font-family:'Fraunces',serif;
+  font-size:12px;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:8px;
+  padding:0 4px;
+}
+.restock-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg-card);
+  border:1px solid var(--border);
+  border-left:3px solid var(--accent);
+  border-radius:12px;
+  padding:12px 14px;
+  margin-bottom:6px;
+  transition:all 0.2s ease;
+}
+.restock-item.done{
+  opacity:0.55;
+  border-left-color:var(--ok);
+}
+.restock-item-main{flex:1;min-width:0}
+.restock-item-name{font-weight:700;font-size:15px;letter-spacing:-0.01em}
+.restock-item-packs{
+  font-size:11px;color:var(--text-2);
+  margin-top:3px;
+}
+.qty-pill{
+  font-family:'Fraunces',serif;
+  font-size:16px;font-weight:600;
+  background:var(--danger-bg);
+  color:var(--danger);
+  border:1px solid rgba(232,92,82,0.25);
+  border-radius:100px;
+  padding:4px 12px;
+  min-width:42px;text-align:center;
+  letter-spacing:-0.02em;
+}
+.qty-pill.done{
+  background:var(--ok-bg);color:var(--ok);
+  border-color:rgba(126,201,126,0.25);
+}
+.btn-done{
+  background:linear-gradient(135deg,#7ec97e 0%,#9eda9e 100%);
+  color:#082e08;
+  border:none;
+  padding:8px 14px;
+  border-radius:100px;
+  font-family:inherit;font-weight:700;font-size:12px;
+  cursor:pointer;
+  display:flex;align-items:center;gap:5px;
+  letter-spacing:0.04em;
+  flex-shrink:0;
+  transition:transform 0.15s ease;
+}
+.btn-done:active{transform:scale(0.95)}
+.btn-done.undone{
+  background:var(--bg-3);
+  color:var(--text-2);
+}
+
+/* SETTINGS */
+.setting-card{
+  background:var(--bg-card);
   border:1px solid var(--border);
   border-radius:14px;
-  padding:22px;
+  padding:16px 18px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:all 0.2s ease;
 }
-.setup-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin-bottom:6px;letter-spacing:-0.02em}
-.setup-sub{color:var(--text-2);font-size:14px;margin-bottom:18px;line-height:1.5}
+.setting-card:active{background:var(--bg-card-hover)}
+.setting-card.selected{
+  background:linear-gradient(135deg,rgba(200,150,87,0.1) 0%,transparent 80%);
+  border-color:rgba(200,150,87,0.35);
+}
+.setting-title{font-weight:700;font-size:15px;letter-spacing:-0.01em}
+.setting-desc{font-size:12px;color:var(--text-2);margin-top:4px;line-height:1.4}
+.setting-tag{font-size:10px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;margin-top:4px}
+
 .input{
   width:100%;
   padding:14px 16px;
-  background:var(--bg);
+  background:var(--bg-card);
   border:1px solid var(--border);
   border-radius:12px;
   color:var(--text);
   font-family:inherit;font-size:15px;
-  margin-bottom:12px;
+  margin-bottom:10px;
 }
 .input:focus{outline:none;border-color:var(--accent)}
-.help{font-size:12px;color:var(--text-3);line-height:1.5;margin-top:10px}
-.help a{color:var(--accent);text-decoration:none}
+
+.help{
+  font-size:12px;color:var(--text-3);line-height:1.5;
+  background:rgba(200,150,87,0.04);
+  border-left:3px solid var(--accent);
+  border-radius:8px;
+  padding:10px 12px;
+  margin-bottom:12px;
+}
+.help strong{color:var(--accent)}
+.help code{background:var(--bg-3);padding:1px 5px;border-radius:4px;font-family:'Courier',monospace;font-size:11px}
 
 /* TOAST */
 .toast{
@@ -300,150 +522,133 @@ body{
   white-space:nowrap;
   max-width:90vw;
   overflow:hidden;text-overflow:ellipsis;
+  box-shadow:0 8px 24px rgba(0,0,0,0.5);
 }
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* EMPTY */
 .empty{text-align:center;padding:60px 20px;color:var(--text-2)}
-.empty-icon{font-size:48px;opacity:0.3;margin-bottom:12px}
-.empty-text{font-size:15px}
+.empty-icon{font-size:52px;opacity:0.4;margin-bottom:14px}
+.empty-text{font-size:15px;line-height:1.5}
+.empty-sub{font-size:12px;color:var(--text-3);margin-top:8px}
 
-/* CATEGORY group */
-.cat-group{
-  background:var(--bg-2);
+/* SETUP */
+.setup-card{
+  background:var(--bg-card);
   border:1px solid var(--border);
-  border-radius:14px;
-  margin-bottom:12px;
-  overflow:hidden;
+  border-radius:18px;
+  padding:24px;
+  margin-bottom:18px;
 }
-.cat-header{
-  padding:12px 16px;
-  font-family:'Fraunces',serif;
-  font-size:13px;font-weight:600;
-  letter-spacing:0.1em;text-transform:uppercase;
-  color:var(--accent);
-  background:rgba(200,150,87,0.05);
-  border-bottom:1px solid var(--border);
-}
-.cat-items{padding:8px}
-.cat-items .restock-item{background:transparent;border:none;border-radius:8px;padding:10px 8px;margin-bottom:0}
+.setup-title{font-family:'Fraunces',serif;font-size:22px;font-weight:600;margin-bottom:6px;letter-spacing:-0.02em}
+.setup-sub{color:var(--text-2);font-size:13px;margin-bottom:18px;line-height:1.5}
 
-.exception-hint{
-  background:rgba(200,150,87,0.1);
-  border:1px solid var(--accent);
-  color:var(--accent-2);
-  padding:10px 12px;
-  border-radius:10px;
-  font-size:12px;
-  margin-top:10px;
-  line-height:1.4;
-}
 </style>
 </head>
 <body>
 <div class="app">
 
-<!-- HOME -->
-<div id="home" class="screen-content">
+<!-- ============================================ -->
+<!-- TAB CONTENT 1: SCANNER -->
+<!-- ============================================ -->
+<div id="tab-scanner-content" class="tab-content">
   <div class="header">
     <h1>Réassort<span>.</span></h1>
     <span class="badge" id="header-badge">0</span>
   </div>
+
+  <!-- Setup screen if no API key -->
+  <div id="setup-screen" style="display:none;padding:0 18px">
+    <div class="setup-card">
+      <div class="setup-title">Configuration</div>
+      <div class="setup-sub">Colle ta clé API Gemini (gratuite). Elle reste sur ton téléphone.</div>
+      <input type="password" id="api-key-input" class="input" placeholder="AIzaSy...">
+      <button class="btn" onclick="saveApiKey()">Valider</button>
+      <div class="help" style="margin-top:14px">
+        1. Va sur <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a><br>
+        2. "Create API key" → "new project"<br>
+        3. Copie-colle la clé ici
+      </div>
+    </div>
+  </div>
+
+  <div id="scanner-main" style="display:none">
+    <!-- Toggle Comptoir / Bacs -->
+    <div class="toggle-group">
+      <button class="toggle-btn active" id="zone-toggle-counter" onclick="setZone('counter')">
+        Comptoir
+      </button>
+      <button class="toggle-btn" id="zone-toggle-bins" onclick="setZone('bins')">
+        Bacs blancs
+      </button>
+    </div>
+
+    <div class="content">
+      <div id="zones-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================ -->
+<!-- TAB CONTENT 2: RESTOCK -->
+<!-- ============================================ -->
+<div id="tab-restock-content" class="tab-content" style="display:none">
+  <div class="header">
+    <h1>À <span>Remonter</span></h1>
+  </div>
   <div class="content">
-    <div id="setup-screen" style="display:none">
-      <div class="setup-card">
-        <div class="setup-title">Configuration</div>
-        <div class="setup-sub">Colle ta clé API Gemini (gratuite). Elle reste sur ton téléphone.</div>
-        <input type="password" id="api-key-input" class="input" placeholder="AIzaSy...">
-        <button class="btn" onclick="saveApiKey()">Valider</button>
-        <div class="help">
-          1. Va sur <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a><br>
-          2. "Create API key" → "new project"<br>
-          3. Copie-colle la clé ici
-        </div>
-      </div>
-    </div>
-
-    <div id="main-screen">
-      <div class="restock-summary" onclick="showTab('restock')">
-        <div class="restock-summary-label">À réassortir</div>
-        <div class="restock-summary-num" id="restock-total">0</div>
-        <div class="restock-summary-sub" id="restock-sub">Aucun manque détecté</div>
-      </div>
-
-      <div class="section-title">Comptoir bas — Front</div>
-      <div id="sections-list"></div>
-
-      <div class="section-title">Bacs blancs — Front</div>
-      <div id="bins-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- SECTION SCAN -->
-<div id="section-screen" class="screen">
-  <div class="screen-header">
-    <button class="back-btn" onclick="goHome()">←</button>
-    <div class="screen-title" id="section-title">Section</div>
-  </div>
-  <div class="screen-body">
-    <div id="section-content"></div>
-  </div>
-</div>
-
-<!-- RESTOCK LIST -->
-<div id="restock-screen" class="screen">
-  <div class="screen-header">
-    <button class="back-btn" onclick="hideScreen('restock-screen')">←</button>
-    <div class="screen-title">Liste de réassort</div>
-  </div>
-  <div class="screen-body">
+    <div id="restock-summary-block"></div>
     <div id="restock-content"></div>
   </div>
 </div>
 
+<!-- ============================================ -->
+<!-- TAB CONTENT 3: SETTINGS -->
+<!-- ============================================ -->
+<div id="tab-settings-content" class="tab-content" style="display:none">
+  <div class="header">
+    <h1>Réglages</h1>
+  </div>
+  <div class="content">
+    <div id="settings-content"></div>
+  </div>
+</div>
+
+
+<!-- ============================================ -->
+<!-- ZONE SCREEN (overlay) -->
+<!-- ============================================ -->
+<div id="zone-screen" class="screen">
+  <div class="screen-header">
+    <button class="back-btn" onclick="closeZone()">←</button>
+    <div class="screen-title" id="zone-screen-title">Zone</div>
+  </div>
+  <div class="screen-body" id="zone-screen-body"></div>
+</div>
+
 <!-- TABS -->
 <div class="tabs">
-  <button class="tab active" id="tab-scan" onclick="showTab('scan')">
+  <button class="tab active" id="tab-scanner" onclick="showTab('scanner')">
     <div class="tab-icon">📷</div>
     Scanner
   </button>
   <button class="tab" id="tab-restock" onclick="showTab('restock')">
     <div class="tab-icon">📋</div>
-    Réassort
+    Remonter
+  </button>
+  <button class="tab" id="tab-settings" onclick="showTab('settings')">
+    <div class="tab-icon">⚙️</div>
+    Réglages
   </button>
 </div>
 
 <div id="toast" class="toast"></div>
 
-<!-- ERROR REPORT MODAL -->
-<div id="error-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;align-items:flex-end;justify-content:center" onclick="if(event.target.id==='error-modal')closeErrorReport()">
-  <div style="background:var(--bg-2);border-top:1px solid var(--border);border-radius:18px 18px 0 0;padding:20px;width:100%;max-width:480px;max-height:80vh;overflow-y:auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <div style="font-family:'Fraunces',serif;font-size:19px;font-weight:600;letter-spacing:-0.01em">🚨 Signaler une erreur</div>
-      <button class="back-btn" onclick="closeErrorReport()">✕</button>
-    </div>
-    <div style="font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:14px">
-      Décris précisément l'erreur de l'IA. Cette info + la photo seront stockées et injectées dans les futurs prompts pour que l'IA évite cette erreur.
-    </div>
-    <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:6px">Description de l'erreur</div>
-    <textarea id="error-comment" class="input" rows="4" placeholder="Ex: Tu as compté un bouchon Bacardi Carta Blanca comme un Absolut. Les Bacardi ont une chauve-souris rouge sur le bouchon."></textarea>
-    <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;margin-bottom:6px;margin-top:6px">Produit concerné (optionnel)</div>
-    <select id="error-product" class="input">
-      <option value="">— Aucun en particulier —</option>
-    </select>
-    <div class="btn-stack" style="margin-top:14px">
-      <button class="btn" onclick="saveErrorReport()">💾 Enregistrer cette erreur</button>
-      <button class="btn btn-secondary" onclick="closeErrorReport()">Annuler</button>
-    </div>
-  </div>
-</div>
-
 </div>
 
 <script>
 // ============================================================
-// DATA : 84 POSITIONS DU COMPTOIR BAS FRONT
+// DATA
 // ============================================================
 const POSITIONS = [
   {n:1, name:"Pinot Noir Maison Paul Manevey", cat:"Vin"},
@@ -532,7 +737,6 @@ const POSITIONS = [
   {n:84, name:"Bacardi Oro", cat:"Rhum VIP", vip:true},
 ];
 
-// 11 sections (Comptoir bas Front) — découpage validé par utilisateur
 const SECTIONS = [
   {id:1, zone:"counter", name:"Section 1", range:[1,10], desc:"Pinot Noir Manevey → Get 27"},
   {id:2, zone:"counter", name:"Section 2", range:[11,19], desc:"Aperol → Martini Vibrante 0.0"},
@@ -547,8 +751,6 @@ const SECTIONS = [
   {id:11, zone:"counter", name:"VIP", range:[78,84], desc:"JD Old No.7 → Bacardi Oro", isVip:true},
 ];
 
-// BACS BLANCS — FRONT (5 bacs identiques)
-// Minimum par bac
 const BIN_PRODUCTS = [
   {name:"Absolut Vodka", min:5, cat:"Vodka", hint:"bouchon argenté lisse"},
   {name:"Beefeater", min:4, cat:"Gin", hint:"bouchon rouge + B doré"},
@@ -568,7 +770,24 @@ const BINS = [
   {id:"bin-5", zone:"bins", name:"Bac 5", desc:"Stock sous-comptoir", isBin:true},
 ];
 
-const ALL_SCANNABLES = [...SECTIONS, ...BINS];
+const ROBOFLOW_CONFIG = {
+  workspace: 'jojo-s-workspace',
+  project: 'bac-blanc',
+  version: 4,
+};
+
+const ROBOFLOW_CLASS_MAP = {
+  'absolut': 'Absolut Vodka',
+  'beefeater': 'Beefeater',
+  'bacardi_carta_blanca': 'Bacardi Carta Blanca',
+  'el_jimador': 'El Jimador Tequila',
+  'jameson': 'Jameson',
+  'jack_daniels': "Jack Daniel's",
+  'creme_peche': 'Crème de Pêche Giffard',
+  'triple_sec': 'Triple Sec Giffard',
+};
+
+const PACK_SIZE = 6;
 
 // ============================================================
 // STATE
@@ -576,28 +795,26 @@ const ALL_SCANNABLES = [...SECTIONS, ...BINS];
 let state = {
   apiKey: localStorage.getItem('gemini_key') || '',
   roboflowKey: localStorage.getItem('roboflow_key') || '',
-  binProvider: localStorage.getItem('bin_provider') || 'gemini', // 'gemini' ou 'roboflow'
+  binProvider: localStorage.getItem('bin_provider') || 'gemini',
+  currentZone: localStorage.getItem('current_zone') || 'counter',
+  currentTab: 'scanner',
   scans: JSON.parse(localStorage.getItem('scans') || '{}'),
   restock: JSON.parse(localStorage.getItem('restock') || '{}'),
+  done: JSON.parse(localStorage.getItem('done') || '{}'),
   learnings: JSON.parse(localStorage.getItem('learnings') || '{"counter":[],"bin":[]}'),
-};
-
-// Configuration Roboflow
-const ROBOFLOW_CONFIG = {
-  workspace: 'jojo-s-workspace',
-  project: 'bac-blanc',
-  version: 4,
 };
 
 function saveState(){
   localStorage.setItem('scans', JSON.stringify(state.scans));
   localStorage.setItem('restock', JSON.stringify(state.restock));
+  localStorage.setItem('done', JSON.stringify(state.done));
   localStorage.setItem('learnings', JSON.stringify(state.learnings));
   localStorage.setItem('bin_provider', state.binProvider);
+  localStorage.setItem('current_zone', state.currentZone);
 }
 
 // ============================================================
-// UI HELPERS
+// HELPERS
 // ============================================================
 function toast(msg, ms=2500){
   const t = document.getElementById('toast');
@@ -606,691 +823,155 @@ function toast(msg, ms=2500){
   setTimeout(()=>t.classList.remove('show'), ms);
 }
 
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function hideScreen(id){
-  document.getElementById(id).classList.remove('active');
-}
-function goHome(){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  renderHome();
-}
-
-function showTab(tab){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  if(tab==='scan'){
-    document.getElementById('tab-scan').classList.add('active');
-    goHome();
-  } else if(tab==='restock'){
-    document.getElementById('tab-restock').classList.add('active');
-    renderRestock();
-    showScreen('restock-screen');
-  }
-}
-
-// ============================================================
-// SETUP
-// ============================================================
-function saveApiKey(){
-  const v = document.getElementById('api-key-input').value.trim();
-  if(!v.startsWith('AIza')){
-    toast('Clé invalide (doit commencer par AIza)');
-    return;
-  }
-  localStorage.setItem('gemini_key', v);
-  state.apiKey = v;
-  toast('Clé enregistrée ✓');
-  renderHome();
-}
-
-// ============================================================
-// HOME RENDER
-// ============================================================
-function renderHome(){
-  if(!state.apiKey){
-    document.getElementById('setup-screen').style.display = 'block';
-    document.getElementById('main-screen').style.display = 'none';
-    return;
-  }
-  document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('main-screen').style.display = 'block';
-
-  // Restock total
-  const totalUnits = Object.values(state.restock).reduce((s,v)=>s+v, 0);
-  document.getElementById('restock-total').textContent = totalUnits;
-  document.getElementById('header-badge').textContent = totalUnits;
-  const uniq = Object.keys(state.restock).length;
-  document.getElementById('restock-sub').textContent = totalUnits === 0
-    ? 'Aucun manque détecté'
-    : `${uniq} produit${uniq>1?'s':''} • ${totalUnits} bouteille${totalUnits>1?'s':''}`;
-
-  // Sections list — Comptoir
-  const list = document.getElementById('sections-list');
-  list.innerHTML = SECTIONS.map(s=>{
-    const scan = state.scans[s.id];
-    let statusClass = '';
-    let statusText = `Positions ${s.range[0]} → ${s.range[1]}`;
-    if(scan){
-      const missing = scan.missing || 0;
-      if(missing === 0){ statusClass = 'done'; statusText = `✓ Complet (${scan.timestamp})`; }
-      else { statusClass = 'partial'; statusText = `⚠ ${missing} manque${missing>1?'s':''} • ${scan.timestamp}`; }
-    }
-    return `
-      <div class="card scan-card ${statusClass}" onclick="openSection(${s.id})">
-        <div class="card-row">
-          <div>
-            <div class="card-title">${s.name}${s.isVip?' ★':''}</div>
-            <div class="card-sub">${statusText}</div>
-            <div class="card-sub" style="margin-top:2px;color:var(--text-3)">${s.desc}</div>
-          </div>
-          <div class="card-arrow">›</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
-  // Bacs blancs
-  const binsList = document.getElementById('bins-list');
-  binsList.innerHTML = BINS.map(b=>{
-    const scan = state.scans[b.id];
-    let statusClass = '';
-    let statusText = b.desc;
-    if(scan){
-      const missing = scan.missing || 0;
-      if(missing === 0){ statusClass = 'done'; statusText = `✓ Complet (${scan.timestamp})`; }
-      else { statusClass = 'partial'; statusText = `⚠ ${missing} manque${missing>1?'s':''} • ${scan.timestamp}`; }
-    }
-    return `
-      <div class="card scan-card ${statusClass}" onclick="openBin('${b.id}')">
-        <div class="card-row">
-          <div>
-            <div class="card-title">${b.name}</div>
-            <div class="card-sub">${statusText}</div>
-          </div>
-          <div class="card-arrow">›</div>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// ============================================================
-// SECTION SCAN
-// ============================================================
-let currentSection = null;
-let currentPhoto = null;
-let currentReasoning = '';
-
-function openSection(id){
-  currentSection = SECTIONS.find(s=>s.id===id);
-  currentPhoto = null;
-  document.getElementById('section-title').textContent = currentSection.name;
-  renderSectionInit();
-  showScreen('section-screen');
-}
-
-function renderSectionInit(){
-  const positions = POSITIONS.filter(p=>p.n>=currentSection.range[0] && p.n<=currentSection.range[1]);
-  document.getElementById('section-content').innerHTML = `
-    <div class="photo-preview" id="photo-preview">
-      <div class="photo-placeholder">
-        <div class="photo-placeholder-icon">📷</div>
-        <div>Prends une photo nette de la section<br>(${currentSection.desc})</div>
-      </div>
-    </div>
-    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
-    <input type="file" id="photo-import" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
-    <div class="btn-stack">
-      <button class="btn" onclick="document.getElementById('photo-input').click()">
-        <span class="btn-icon">📷</span> Prendre la photo
-      </button>
-      <button class="btn btn-secondary" onclick="document.getElementById('photo-import').click()">
-        <span class="btn-icon">🖼️</span> Importer depuis la galerie
-      </button>
-      <button class="btn btn-secondary" onclick="manualEntry()">
-        ✏️ Saisir manuellement
-      </button>
-    </div>
-    <div class="section-title">Positions attendues</div>
-    ${positions.map(p=>`
-      <div class="position-item">
-        <div class="position-row">
-          <div class="position-info">
-            <div class="position-num">Position ${p.n} • ${p.cat}</div>
-            <div class="position-name ${p.exception?'exception':''}">${p.name}</div>
-            ${p.exception ? '<div class="exception-hint">⚠️ Position exception — 3 produits différents en profondeur</div>' : ''}
-          </div>
-        </div>
-      </div>
-    `).join('')}
-  `;
-}
-
-function onPhotoSelected(event){
-  const file = event.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e=>{
-    const img = new Image();
-    img.onload = ()=>{
-      // Compresser l'image: max 1280px de large, qualité 0.75
-      const MAX_SIZE = 1280;
-      let w = img.width, h = img.height;
-      if(w > MAX_SIZE || h > MAX_SIZE){
-        if(w > h){ h = h * (MAX_SIZE/w); w = MAX_SIZE; }
-        else { w = w * (MAX_SIZE/h); h = MAX_SIZE; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      currentPhoto = canvas.toDataURL('image/jpeg', 0.75);
-      document.getElementById('photo-preview').innerHTML = `<img src="${currentPhoto}">`;
-      if(currentSection.isBin){
-        analyzeBinPhoto();
-      } else {
-        analyzePhoto();
-      }
-    };
-    img.onerror = ()=>{
-      toast('Erreur lecture image');
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-// ============================================================
-// GEMINI ANALYSIS
-// ============================================================
-
-// Wrapper avec retry automatique pour gérer 503/429/timeout
-async function geminiRequestWithRetry(model, body, onRetry){
-  const MAX_ATTEMPTS = 3;
-  const DELAYS = [1500, 3500, 7000]; // ms
-  let lastError = null;
-
-  for(let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++){
-    try {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.apiKey}`, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(body)
-      });
-
-      if(response.ok) return await response.json();
-
-      const errText = await response.text();
-      const isRetriable = response.status === 503 || response.status === 429 || response.status >= 500;
-
-      if(!isRetriable || attempt === MAX_ATTEMPTS){
-        throw new Error(`API ${response.status}: ${errText.substring(0,200)}`);
-      }
-
-      // Retry-able: attendre et retenter
-      lastError = `API ${response.status}: ${errText.substring(0,80)}`;
-      if(onRetry) onRetry(attempt + 1, MAX_ATTEMPTS, lastError);
-      await new Promise(r=>setTimeout(r, DELAYS[attempt-1]));
-    } catch(e){
-      if(attempt === MAX_ATTEMPTS) throw e;
-      // Erreur réseau, retenter
-      lastError = e.message;
-      if(onRetry) onRetry(attempt + 1, MAX_ATTEMPTS, lastError);
-      await new Promise(r=>setTimeout(r, DELAYS[attempt-1]));
-    }
-  }
-  throw new Error(lastError || 'Échec après plusieurs tentatives');
-}
-
-function updateLoadingMessage(attemptNum, maxAttempts, lastError){
-  const el = document.querySelector('.loading-text');
-  if(!el) return;
-  el.innerHTML = `Service Gemini occupé, nouvelle tentative ${attemptNum}/${maxAttempts}...<br><span style="color:var(--text-3);font-size:12px">${escapeHtml(lastError||'')}</span>`;
-}
-
-function buildLearningsBlock(zoneType){
-  const lessons = state.learnings[zoneType] || [];
-  if(lessons.length === 0) return '';
-
-  // Séparer auto (deltas) et detailed (commentaires user)
-  const autoLessons = lessons.filter(l=>l.type !== 'detailed');
-  const detailedLessons = lessons.filter(l=>l.type === 'detailed').slice(-10); // 10 derniers
-
-  // 1. Agréger les autos par produit pour patterns statistiques
-  const byProduct = {};
-  autoLessons.forEach(l=>{
-    if(!byProduct[l.productName]) byProduct[l.productName] = {deltas:[], count:0};
-    byProduct[l.productName].deltas.push(l.delta);
-    byProduct[l.productName].count++;
-  });
-
-  const insights = [];
-  Object.entries(byProduct).forEach(([name, data])=>{
-    if(data.count < 2) return;
-    const avg = data.deltas.reduce((s,d)=>s+d,0) / data.deltas.length;
-    const absAvg = Math.abs(avg);
-    if(absAvg < 0.5) return;
-
-    if(avg < 0){
-      insights.push(`- "${name}": Tu as tendance à SUR-COMPTER (+${absAvg.toFixed(1)} en trop en moyenne sur ${data.count} essais). SOIS PLUS CONSERVATEUR.`);
-    } else {
-      insights.push(`- "${name}": Tu as tendance à SOUS-COMPTER (${absAvg.toFixed(1)} oubliée(s) en moyenne sur ${data.count} essais). COMPTE AUSSI les bouteilles partiellement cachées.`);
-    }
-  });
-
-  // 2. Lister les erreurs détaillées signalées
-  const detailedTexts = detailedLessons.map(l=>{
-    const prodPart = l.productName ? ` (concernant ${l.productName})` : '';
-    return `- ${l.userComment}${prodPart}`;
-  });
-
-  if(insights.length === 0 && detailedTexts.length === 0) return '';
-
-  let block = '\n\nRETOUR D\'EXPÉRIENCE — ERREURS PASSÉES SUR CE BAR:';
-  if(insights.length > 0){
-    block += '\n\nPATTERNS STATISTIQUES:\n' + insights.join('\n');
-  }
-  if(detailedTexts.length > 0){
-    block += '\n\nERREURS PRÉCISES SIGNALÉES PAR L\'UTILISATEUR:\n' + detailedTexts.join('\n');
-  }
-  block += '\n\nTiens compte de ces patterns et erreurs pour éviter de les répéter.';
-  return block;
-}
-
-async function analyzePhoto(){
-  if(!currentPhoto) return;
-  const positions = POSITIONS.filter(p=>p.n>=currentSection.range[0] && p.n<=currentSection.range[1]);
-
-  document.getElementById('section-content').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">Analyse en cours...<br><span style="color:var(--text-3);font-size:12px">(5-15s)</span></div>
-    </div>
-  `;
-
-  const isVip = currentSection.isVip;
-  const counterLearnings = buildLearningsBlock('counter');
-
-  const positionsDescription = positions.map(p=>{
-    if(p.exception){
-      return `Position ${p.n} (EXCEPTION): 3 bouteilles DIFFÉRENTES en profondeur = ${p.items.join(' + ')}. Compter chaque produit séparément.`;
-    }
-    return `Position ${p.n}: "${p.name}" (3 bouteilles identiques en profondeur attendues)`;
-  }).join('\n');
-
-  const prompt = isVip ? `
-Tu analyses une photo du comptoir VIP d'un bar. C'est une zone de stockage où chaque position contient une ou plusieurs bouteilles d'un produit spécifique.${counterLearnings}
-
-POSITIONS À ANALYSER (de gauche à droite):
-${positionsDescription}
-
-Pour chaque position, compte le nombre de bouteilles VISIBLES du produit attendu.
-
-Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, format exact:
-{
-  "positions": [
-    {"n": 78, "detected": 3, "expected": 3, "confidence": "high"},
-    ...
-  ]
-}
-
-Sois précis. Si tu ne peux pas voir une position clairement, mets "confidence": "low".
-` : `
-Tu analyses une photo du comptoir d'un bar. Chaque "position" est une COLONNE de 3 bouteilles alignées en PROFONDEUR (la 1ère devant avec un bec verseur, 2 derrière). Quand une bouteille est manquante, il y a un TROU visible (moins de bouchons visibles au-dessus).${counterLearnings}
-
-POSITIONS À ANALYSER (de gauche à droite):
-${positionsDescription}
-
-MÉTHODE: Pour chaque position, compte le nombre de bouchons/capsules visibles AU-DESSUS de la ligne des bouteilles. Chaque produit a une couleur de bouchon caractéristique. 3 bouchons visibles = position pleine. 2 = il manque 1 bouteille. 1 = il manque 2. 0 = vide.
-
-Pour les positions EXCEPTION: compte chaque produit attendu séparément.
-
-Réponds UNIQUEMENT en JSON valide, sans markdown, sans backticks, format exact:
-{
-  "positions": [
-    {"n": 1, "detected": 3, "expected": 3, "confidence": "high"},
-    {"n": 4, "detected": 3, "expected": 3, "confidence": "medium", "exception_detail": {"Cointreau": 1, "Kahlua": 2}},
-    ...
-  ]
-}
-
-Sois précis et conservateur. Si tu ne peux pas voir clairement, mets "confidence": "low" et estime au mieux.
-`;
-
-  try {
-    const base64 = currentPhoto.split(',')[1];
-    const mimeType = currentPhoto.match(/data:(.*?);/)[1];
-
-    const data = await geminiRequestWithRetry('gemini-2.5-flash', {
-      contents: [{
-        parts: [
-          {text: prompt},
-          {inline_data: {mime_type: mimeType, data: base64}}
-        ]
-      }],
-      generationConfig: {
-        temperature: 0.1,
-        responseMimeType: "application/json"
-      }
-    }, updateLoadingMessage);
-
-    const text = data.candidates[0].content.parts[0].text;
-    const parsed = JSON.parse(text);
-
-    renderValidation(parsed.positions, positions);
-
-  } catch(e){
-    console.error(e);
-    document.getElementById('section-content').innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-text">Erreur d'analyse:<br><span style="color:var(--danger);font-size:12px">${e.message}</span></div>
-        <div class="btn-stack" style="max-width:300px;margin:20px auto">
-          <button class="btn" onclick="renderSectionInit()">Réessayer</button>
-          <button class="btn btn-secondary" onclick="manualEntry()">Saisir manuellement</button>
-        </div>
-      </div>
-    `;
-  }
-}
-
-// ============================================================
-// VALIDATION
-// ============================================================
-let currentResults = null;
-
-function renderValidation(detected, positions){
-  // Map detected by position number
-  const detMap = {};
-  detected.forEach(d=>{ detMap[d.n] = d; });
-
-  // Init results with detected values
-  currentResults = positions.map(p=>{
-    const d = detMap[p.n] || {detected: 3, confidence: 'low'};
-    const expected = 3;
-    const detected = d.detected ?? 3;
-    const missing = Math.max(0, expected - detected);
-    return {
-      n: p.n,
-      name: p.name,
-      cat: p.cat,
-      exception: p.exception,
-      items: p.items,
-      detected: detected,
-      aiOriginalDetected: detected, // pour delta apprentissage
-      missing: missing,
-      confidence: d.confidence || 'medium',
-      exception_detail: d.exception_detail,
-    };
-  });
-
-  renderValidation_();
-}
-
-function renderValidation_(){renderValidationUI();}
-
-function hasUserChanges(){
-  return currentResults.some(r =>
-    r.aiOriginalDetected !== undefined &&
-    r.confidence !== 'manual' &&
-    r.detected !== r.aiOriginalDetected
-  );
-}
-
-function renderValidationUI(){
-  const totalMissing = currentResults.reduce((s,r)=>s+r.missing, 0);
-  const showReasoning = currentReasoning && currentSection.isBin;
-  const hasChanges = hasUserChanges();
-
-  document.getElementById('section-content').innerHTML = `
-    <div class="restock-summary">
-      <div class="restock-summary-label">Détecté par l'IA</div>
-      <div class="restock-summary-num">${totalMissing}</div>
-      <div class="restock-summary-sub">bouteille${totalMissing>1?'s':''} manquante${totalMissing>1?'s':''} sur cette ${currentSection.isBin?'zone':'section'}</div>
-    </div>
-    ${showReasoning ? `
-      <div style="background:rgba(200,150,87,0.08);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:14px">
-        <div style="font-size:10px;color:var(--accent);text-transform:uppercase;letter-spacing:0.15em;font-weight:700;margin-bottom:6px">🤖 Raisonnement IA</div>
-        <div style="font-size:12px;color:var(--text-2);line-height:1.5">${escapeHtml(currentReasoning)}</div>
-      </div>
-    ` : ''}
-    <div style="font-size:12px;color:var(--text-3);margin-bottom:14px;line-height:1.5">
-      Vérifie chaque ${currentSection.isBin?'produit':'position'}. Ajuste les quantités si l'IA s'est trompée.
-    </div>
-    <div id="validation-list">
-      ${currentResults.map((r, i)=>renderValidationItem(r, i)).join('')}
-    </div>
-    <div class="btn-stack">
-      ${hasChanges ? `
-        <button class="btn" onclick="confirmValidation(true)">
-          ✓ Valider avec correction (l'IA apprend 🧠)
-        </button>
-      ` : `
-        <button class="btn" onclick="confirmValidation(false)">
-          ✓ Tout est OK, valider
-        </button>
-      `}
-      <button class="btn btn-secondary" onclick="${currentSection.isBin ? 'renderBinInit()' : 'renderSectionInit()'}">
-        🔄 Reprendre une photo
-      </button>
-      <button class="btn btn-danger" onclick="openErrorReport()">
-        💬 Ajouter un commentaire d'erreur
-      </button>
-    </div>
-  `;
-}
-
 function escapeHtml(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function renderValidationItem(r, i){
-  const target = r.isBin ? r.min : 3;
-  const excess = Math.max(0, r.detected - target); // surplus si IA a sur-compté
-  let dotClass = 'ok';
-  if(r.missing === 0 && excess === 0) dotClass = 'ok';
-  else if(excess > 0) dotClass = 'warn'; // sur-comptage = orange
-  else if(r.missing >= target) dotClass = 'bad';
-  else dotClass = 'warn';
+function formatPacks(qty){
+  const packs = Math.floor(qty / PACK_SIZE);
+  const units = qty % PACK_SIZE;
+  if(qty === 0) return '';
+  if(packs === 0) return `${units} unité${units>1?'s':''}`;
+  if(units === 0) return `${packs} pack${packs>1?'s':''} de ${PACK_SIZE}`;
+  return `${packs} pack${packs>1?'s':''} + ${units} unité${units>1?'s':''}`;
+}
 
-  const confLabel = r.confidence === 'high' ? '' : r.confidence === 'medium' ? ' • IA: moyenne' : r.confidence === 'manual' ? ' • Manuel' : ' • IA: incertain';
+// ============================================================
+// TAB NAVIGATION
+// ============================================================
+function showTab(tabName){
+  state.currentTab = tabName;
+  // Hide all tab contents
+  document.querySelectorAll('.tab-content').forEach(el=>el.style.display='none');
+  document.querySelectorAll('.tab').forEach(el=>el.classList.remove('active'));
 
-  const statusLine = excess > 0
-    ? `<span style="color:var(--warn)">⚠ ${excess} en trop</span>`
-    : r.missing > 0
-      ? `<span style="color:var(--danger)">Manque ${r.missing}</span>`
-      : `<span style="color:var(--ok)">✓ OK</span>`;
+  // Show selected
+  document.getElementById(`tab-${tabName}-content`).style.display = 'block';
+  document.getElementById(`tab-${tabName}`).classList.add('active');
 
-  if(r.isBin){
+  // Render
+  if(tabName === 'scanner') renderScanner();
+  else if(tabName === 'restock') renderRestock();
+  else if(tabName === 'settings') renderSettings();
+}
+
+// ============================================================
+// SCANNER TAB
+// ============================================================
+function setZone(zone){
+  state.currentZone = zone;
+  saveState();
+  document.getElementById('zone-toggle-counter').classList.toggle('active', zone === 'counter');
+  document.getElementById('zone-toggle-bins').classList.toggle('active', zone === 'bins');
+  renderZonesList();
+}
+
+function renderScanner(){
+  if(!state.apiKey){
+    document.getElementById('setup-screen').style.display = 'block';
+    document.getElementById('scanner-main').style.display = 'none';
+    return;
+  }
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('scanner-main').style.display = 'block';
+
+  // Header badge
+  const totalUnits = Object.entries(state.restock)
+    .filter(([k,v])=>v>0 && !state.done[k])
+    .reduce((s,[k,v])=>s+v, 0);
+  document.getElementById('header-badge').textContent = totalUnits;
+
+  // Set zone toggle
+  document.getElementById('zone-toggle-counter').classList.toggle('active', state.currentZone === 'counter');
+  document.getElementById('zone-toggle-bins').classList.toggle('active', state.currentZone === 'bins');
+
+  renderZonesList();
+}
+
+function renderZonesList(){
+  const list = document.getElementById('zones-list');
+  const items = state.currentZone === 'counter' ? SECTIONS : BINS;
+
+  list.innerHTML = items.map(s=>{
+    const scan = state.scans[s.id];
+    let missing = 0;
+    let statusText = s.desc || 'Stock sous-comptoir';
+    let cardClass = '';
+    let statusClass = 'neutral';
+    let statusIcon = '○';
+
+    if(scan){
+      missing = scan.missing || 0;
+      if(missing === 0){
+        cardClass = 'complete';
+        statusClass = 'ok';
+        statusIcon = '✓';
+        statusText = `Complet • ${scan.timestamp}`;
+      } else {
+        cardClass = 'has-missing';
+        statusClass = 'warn';
+        statusIcon = '⚠';
+        statusText = `${missing} manque${missing>1?'s':''} • ${scan.timestamp}`;
+      }
+    }
+
     return `
-      <div class="position-item">
-        <div class="position-row">
-          <div class="position-info">
-            <div class="position-num">${r.cat} • min ${r.min}${confLabel}</div>
-            <div class="position-name">${r.name}</div>
-            ${r.aiNote ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px;font-style:italic">↳ ${escapeHtml(r.aiNote)}</div>` : ''}
+      <div class="zone-card ${cardClass}" onclick="openZone('${s.id}')">
+        <div class="zone-row">
+          <div class="zone-info">
+            <div class="zone-title ${s.isVip?'vip':''}">${s.name}</div>
+            <div class="zone-desc">${escapeHtml(s.desc || 'Stock sous-comptoir')}</div>
+            <div class="zone-status ${statusClass}">${statusIcon} ${escapeHtml(scan ? (missing===0?'Complet':`${missing} manque${missing>1?'s':''}`) : 'À scanner')}</div>
           </div>
-          <div class="position-status">
-            <div class="dot ${dotClass}"></div>
-          </div>
-        </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-          <div>
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Présent en bac</div>
-            <div style="font-size:13px;color:var(--text-2);margin-top:2px">${statusLine}</div>
-          </div>
-          <div class="qty-controls">
-            <button class="qty-btn" onclick="adjustQty(${i},-1)">−</button>
-            <div class="qty-num">${r.detected}</div>
-            <button class="qty-btn" onclick="adjustQty(${i},1)">+</button>
-          </div>
+          <div class="zone-arrow">›</div>
         </div>
       </div>
     `;
-  }
-
-  return `
-    <div class="position-item">
-      <div class="position-row">
-        <div class="position-info">
-          <div class="position-num">Position ${r.n} • ${r.cat}${confLabel}</div>
-          <div class="position-name ${r.exception?'exception':''}">${r.name}</div>
-          ${r.exception_detail ? `<div style="font-size:11px;color:var(--text-3);margin-top:4px">IA: ${Object.entries(r.exception_detail).map(([k,v])=>`${k}=${v}`).join(', ')}</div>` : ''}
-        </div>
-        <div class="position-status">
-          <div class="dot ${dotClass}"></div>
-        </div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
-        <div>
-          <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">Présent</div>
-          <div style="font-size:13px;color:var(--text-2);margin-top:2px">${statusLine}</div>
-        </div>
-        <div class="qty-controls">
-          <button class="qty-btn" onclick="adjustQty(${i},-1)">−</button>
-          <div class="qty-num">${r.detected}</div>
-          <button class="qty-btn" onclick="adjustQty(${i},1)">+</button>
-        </div>
-      </div>
-    </div>
-  `;
+  }).join('');
 }
 
-function adjustQty(idx, delta){
-  const r = currentResults[idx];
-  const target = r.isBin ? r.min : 3;
-  // Permet d'aller jusqu'à target*2 + 2 pour gérer les sur-comptages
-  const maxAllowed = target * 2 + 2;
-  r.detected = Math.max(0, Math.min(maxAllowed, r.detected + delta));
-  r.missing = Math.max(0, target - r.detected);
-  renderValidationUI();
+// ============================================================
+// ZONE SCREEN (scan + saisie)
+// ============================================================
+let currentSection = null;
+let currentPhoto = null;
+let currentResults = null;
+let currentReasoning = '';
+let isManualMode = false;
+
+function openZone(id){
+  // id peut être numérique (sections) ou string (bins)
+  currentSection = SECTIONS.find(s=>String(s.id)===String(id)) || BINS.find(b=>b.id===id);
+  if(!currentSection) return;
+  currentPhoto = null;
+  currentReasoning = '';
+  isManualMode = true; // mode hybride: liste éditable direct, photo en option
+
+  initCurrentResults();
+
+  document.getElementById('zone-screen-title').textContent = currentSection.name;
+  document.getElementById('zone-screen-title').classList.toggle('vip', !!currentSection.isVip);
+
+  renderZoneScreen();
+  document.getElementById('zone-screen').classList.add('active');
 }
 
-async function confirmValidation(withLearning){
-  // ============================================================
-  // APPRENTISSAGE: Capturer les corrections IA → user
-  // Uniquement si withLearning === true
-  // ============================================================
-  const zoneType = currentSection.isBin ? 'bin' : 'counter';
-  const now = Date.now();
-
-  if(withLearning){
-    // Créer une thumbnail de la photo pour les corrections importantes
-    let photoThumb = '';
-    if(currentPhoto){
-      try {
-        photoThumb = await createThumbnail(currentPhoto, 384, 0.5);
-      } catch(e){ console.warn('Thumb failed', e); }
-    }
-
-    let hasAnyDelta = false;
-    currentResults.forEach(r=>{
-      if(r.aiOriginalDetected !== undefined && r.confidence !== 'manual'){
-        const delta = r.detected - r.aiOriginalDetected;
-        if(delta !== 0){
-          hasAnyDelta = true;
-          state.learnings[zoneType].push({
-            type: 'auto',
-            productName: r.name,
-            aiSaid: r.aiOriginalDetected,
-            actualWas: r.detected,
-            delta: delta,
-            photoThumb: photoThumb, // photo associée à la correction
-            timestamp: now,
-          });
-        }
-      }
-    });
-
-    // Garder seulement les 100 dernières par type
-    if(state.learnings[zoneType].length > 100){
-      state.learnings[zoneType] = state.learnings[zoneType].slice(-100);
-    }
-  }
-
-  // ============================================================
-  // First, remove previous scan for this section
-  // ============================================================
-  const oldScan = state.scans[currentSection.id];
-  if(oldScan && oldScan.results){
-    oldScan.results.forEach(r=>{
-      if(r.missing > 0){
-        if(r.isBin){
-          // Bin item
-          if(state.restock[r.name]) state.restock[r.name] = Math.max(0, state.restock[r.name] - r.missing);
-        } else if(r.exception){
-          // Exception: decrement based on stored exception_detail or items
-          const detail = r.exception_detail || {};
-          const itemCounts = {};
-          (r.items || []).forEach(it=>{ itemCounts[it] = (itemCounts[it]||0) + 1; });
-          Object.keys(itemCounts).forEach(item=>{
-            const expected = itemCounts[item];
-            const detected = detail[item] !== undefined ? detail[item] : expected;
-            const wasMissing = Math.max(0, expected - detected);
-            if(wasMissing > 0 && state.restock[item]){
-              state.restock[item] = Math.max(0, state.restock[item] - wasMissing);
-            }
-          });
-        } else {
-          if(state.restock[r.name]) state.restock[r.name] = Math.max(0, state.restock[r.name] - r.missing);
-        }
-      }
-    });
-  }
-
-  // Add new missing items
-  currentResults.forEach(r=>{
-    if(r.missing > 0){
-      if(r.isBin){
-        state.restock[r.name] = (state.restock[r.name] || 0) + r.missing;
-      } else if(r.exception){
-        const detail = r.exception_detail || {};
-        const itemCounts = {};
-        r.items.forEach(it=>{ itemCounts[it] = (itemCounts[it]||0) + 1; });
-        Object.keys(itemCounts).forEach(item=>{
-          const expected = itemCounts[item];
-          const detected = detail[item] !== undefined ? detail[item] : expected;
-          const missing = Math.max(0, expected - detected);
-          if(missing > 0){
-            state.restock[item] = (state.restock[item] || 0) + missing;
-          }
-        });
-      } else {
-        state.restock[r.name] = (state.restock[r.name] || 0) + r.missing;
-      }
-    }
-  });
-
-  // Clean zeros
-  Object.keys(state.restock).forEach(k=>{
-    if(state.restock[k] === 0) delete state.restock[k];
-  });
-
-  // Save scan record
-  const scanDate = new Date();
-  const ts = scanDate.toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-  const totalMissing = currentResults.reduce((s,r)=>s+r.missing, 0);
-  state.scans[currentSection.id] = {
-    timestamp: ts,
-    missing: totalMissing,
-    results: currentResults,
-  };
-
-  saveState();
-  toast(withLearning ? 'Validé ✓ IA enrichie 🧠' : 'Validé ✓');
-  goHome();
+function closeZone(){
+  document.getElementById('zone-screen').classList.remove('active');
+  currentSection = null;
+  currentResults = null;
+  currentPhoto = null;
+  renderScanner();
 }
 
-function manualEntry(){
+function initCurrentResults(){
   if(currentSection.isBin){
     currentResults = BIN_PRODUCTS.map(p=>({
       name: p.name,
       cat: p.cat,
       min: p.min,
       detected: p.min,
+      aiOriginalDetected: undefined,
       missing: 0,
       confidence: 'manual',
       isBin: true,
@@ -1304,302 +985,539 @@ function manualEntry(){
       exception: p.exception,
       items: p.items,
       detected: 3,
+      aiOriginalDetected: undefined,
       missing: 0,
       confidence: 'manual',
     }));
   }
-  renderValidationUI();
 }
 
-// ============================================================
-// BACS BLANCS
-// ============================================================
-function openBin(binId){
-  currentSection = BINS.find(b=>b.id===binId);
-  currentPhoto = null;
-  currentReasoning = '';
-  document.getElementById('section-title').textContent = currentSection.name;
-  renderBinInit();
-  showScreen('section-screen');
-}
+function renderZoneScreen(){
+  const isBin = currentSection.isBin;
+  const provider = (isBin && state.binProvider === 'roboflow' && state.roboflowKey) ? 'roboflow' : 'gemini';
+  const providerLabel = provider === 'roboflow'
+    ? `<div class="provider-badge roboflow">🎯 Modèle Roboflow</div>`
+    : `<div class="provider-badge gemini">🤖 Gemini Vision</div>`;
 
-function renderBinInit(){
-  const providerLabel = (state.binProvider === 'roboflow' && state.roboflowKey)
-    ? `<div style="display:inline-block;background:rgba(126,201,126,0.15);color:var(--ok);font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;letter-spacing:0.04em;margin-bottom:12px">🎯 MODÈLE ROBOFLOW</div>`
-    : `<div style="display:inline-block;background:rgba(200,150,87,0.15);color:var(--accent);font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px;letter-spacing:0.04em;margin-bottom:12px">🤖 GEMINI</div>`;
+  const photoBlock = currentPhoto
+    ? `<div class="photo-preview"><img src="${currentPhoto}" alt=""></div>`
+    : `<div class="photo-preview">
+         <div class="photo-placeholder">
+           <div class="photo-placeholder-icon">📷</div>
+           <div class="photo-placeholder-text">${isBin ? 'Photo du bac vu du dessus' : 'Photo de la section'}</div>
+         </div>
+       </div>`;
 
-  document.getElementById('section-content').innerHTML = `
+  const reasoningBlock = currentReasoning ? `
+    <div class="reasoning">
+      <div class="reasoning-label">🤖 Analyse IA</div>
+      <div class="reasoning-text">${escapeHtml(currentReasoning)}</div>
+    </div>
+  ` : '';
+
+  const totalMissing = currentResults ? currentResults.reduce((s,r)=>s+r.missing,0) : 0;
+
+  document.getElementById('zone-screen-body').innerHTML = `
     ${providerLabel}
-    <div class="photo-preview" id="photo-preview">
-      <div class="photo-placeholder">
-        <div class="photo-placeholder-icon">📷</div>
-        <div>Prends une photo du bac vu du dessus<br>(${currentSection.name})</div>
-      </div>
-    </div>
-    <input type="file" id="photo-input" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
-    <input type="file" id="photo-import" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
-    <div class="btn-stack">
-      <button class="btn" onclick="document.getElementById('photo-input').click()">
-        <span class="btn-icon">📷</span> Prendre la photo
-      </button>
+
+    ${photoBlock}
+
+    <button class="btn-scan" onclick="document.getElementById('photo-capture').click()">
+      📷 ${currentPhoto ? 'Refaire la photo' : 'Scanner cette zone'}
+    </button>
+
+    <div class="scan-secondary">
       <button class="btn btn-secondary" onclick="document.getElementById('photo-import').click()">
-        <span class="btn-icon">🖼️</span> Importer depuis la galerie
+        🖼️ Galerie
       </button>
-      <button class="btn btn-secondary" onclick="manualEntry()">
-        ✏️ Saisir manuellement
+      <button class="btn btn-secondary" onclick="resetManual()">
+        ↺ Reset
       </button>
     </div>
-    <div class="section-title">Produits attendus dans ce bac</div>
-    ${BIN_PRODUCTS.map(p=>`
-      <div class="position-item">
-        <div class="position-row">
-          <div class="position-info">
-            <div class="position-num">${p.cat} • min ${p.min} bouteille${p.min>1?'s':''}</div>
-            <div class="position-name">${p.name}</div>
-            <div style="font-size:11px;color:var(--text-3);margin-top:3px">${p.hint}</div>
-          </div>
+
+    <input type="file" id="photo-capture" accept="image/*" capture="environment" style="display:none" onchange="onPhotoSelected(event)">
+    <input type="file" id="photo-import" accept="image/*" style="display:none" onchange="onPhotoSelected(event)">
+
+    ${reasoningBlock}
+
+    <div class="section-title">${isBin ? 'Produits attendus' : 'Positions'} (${currentResults.length}) — ${totalMissing} manque${totalMissing>1?'s':''}</div>
+
+    <div id="prod-list">
+      ${currentResults.map((r,i)=>renderProdLine(r,i)).join('')}
+    </div>
+
+    <div class="btn-stack">
+      <button class="btn" onclick="confirmValidation()">
+        ✓ Valider
+      </button>
+    </div>
+  `;
+}
+
+function renderProdLine(r, i){
+  const target = r.isBin ? r.min : 3;
+  const isComplete = r.detected >= target;
+  const isMissing = r.missing > 0;
+  const cardClass = isMissing ? 'missing' : (isComplete ? 'complete' : '');
+  const ratioClass = isMissing ? 'missing' : (isComplete ? 'complete' : '');
+
+  if(r.isBin){
+    return `
+      <div class="prod-line ${cardClass}">
+        <div class="prod-info">
+          <div class="prod-num">${r.cat} • min ${r.min}</div>
+          <div class="prod-name">${escapeHtml(r.name)}</div>
+          ${r.aiNote ? `<div class="ai-note">↳ ${escapeHtml(r.aiNote)}</div>` : ''}
         </div>
-      </div>
-    `).join('')}
-  `;
-}
-
-async function analyzeBinPhoto(){
-  if(state.binProvider === 'roboflow' && state.roboflowKey){
-    return analyzeBinPhotoRoboflow();
-  }
-  return analyzeBinPhotoGemini();
-}
-
-// Mapping classes Roboflow → noms de produits dans l'app
-const ROBOFLOW_CLASS_MAP = {
-  'absolut': 'Absolut Vodka',
-  'beefeater': 'Beefeater',
-  'bacardi_carta_blanca': 'Bacardi Carta Blanca',
-  'el_jimador': 'El Jimador Tequila',
-  'jameson': 'Jameson',
-  'jack_daniels': "Jack Daniel's",
-  'creme_peche': 'Crème de Pêche Giffard',
-  'triple_sec': 'Triple Sec Giffard',
-};
-
-async function analyzeBinPhotoRoboflow(){
-  if(!currentPhoto) return;
-
-  document.getElementById('section-content').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">Analyse via ton modèle Roboflow...<br><span style="color:var(--text-3);font-size:12px">(2-5s)</span></div>
-    </div>
-  `;
-
-  try {
-    // Extract base64 sans le prefix data:image/...;base64,
-    const base64 = currentPhoto.split(',')[1];
-
-    // Roboflow accepte direct le base64 dans le body
-    const url = `https://detect.roboflow.com/${ROBOFLOW_CONFIG.project}/${ROBOFLOW_CONFIG.version}?api_key=${state.roboflowKey}&confidence=30&overlap=50`;
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: base64
-    });
-
-    if(!response.ok){
-      const err = await response.text();
-      throw new Error(`Roboflow ${response.status}: ${err.substring(0,200)}`);
-    }
-
-    const data = await response.json();
-    // data.predictions = [{class:"absolut", confidence:0.94, x:..., y:...}, ...]
-
-    // Compter par classe
-    const counts = {};
-    (data.predictions || []).forEach(p=>{
-      const productName = ROBOFLOW_CLASS_MAP[p.class] || p.class;
-      counts[productName] = (counts[productName] || 0) + 1;
-    });
-
-    // Construire les résultats au format attendu
-    const products = BIN_PRODUCTS.map(p=>({
-      name: p.name,
-      detected: counts[p.name] || 0,
-      confidence: 'high', // Roboflow donne déjà la confiance par détection
-      note: `${counts[p.name] || 0} détection${(counts[p.name]||0)>1?'s':''} via ton modèle (${data.predictions?.length || 0} bouteilles totales)`,
-    }));
-
-    const reasoning = `Modèle Roboflow "bac-blanc v${ROBOFLOW_CONFIG.version}" — ${data.predictions?.length || 0} bouteille(s) détectée(s) sur la photo. Temps de traitement: ${data.time ? data.time.toFixed(2) + 's' : '~2s'}.`;
-
-    renderBinValidation(products, reasoning);
-
-  } catch(e){
-    console.error(e);
-    document.getElementById('section-content').innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-text">Erreur Roboflow:<br><span style="color:var(--danger);font-size:12px">${e.message}</span></div>
-        <div class="btn-stack" style="max-width:300px;margin:20px auto">
-          <button class="btn" onclick="renderBinInit()">Réessayer</button>
-          <button class="btn btn-secondary" onclick="state.binProvider='gemini'; saveState(); analyzeBinPhotoGemini()">Basculer sur Gemini</button>
-          <button class="btn btn-secondary" onclick="manualEntry()">Saisir manuellement</button>
+        <div class="prod-ratio ${ratioClass}">${r.detected}/${r.min}</div>
+        <div class="qty-mini">
+          <button class="qty-btn minus" onclick="adjustQty(${i},-1)">−</button>
+          <button class="qty-btn plus" onclick="adjustQty(${i},1)">+</button>
         </div>
       </div>
     `;
   }
-}
 
-async function analyzeBinPhotoGemini(){
-  if(!currentPhoto) return;
-
-  document.getElementById('section-content').innerHTML = `
-    <div class="loading">
-      <div class="spinner"></div>
-      <div class="loading-text">Analyse précise du bac...<br><span style="color:var(--text-3);font-size:12px">(10-20s)</span></div>
+  return `
+    <div class="prod-line ${cardClass} ${r.exception?'exception':''}">
+      <div class="prod-info">
+        <div class="prod-num">Position ${r.n} • ${r.cat}</div>
+        <div class="prod-name ${r.exception?'exception-name':''}">${escapeHtml(r.name)}</div>
+        ${r.exception_detail ? `<div class="ai-note">IA: ${Object.entries(r.exception_detail).map(([k,v])=>`${escapeHtml(k)}=${v}`).join(', ')}</div>` : ''}
+      </div>
+      <div class="prod-ratio ${ratioClass}">${r.detected}/3</div>
+      <div class="qty-mini">
+        <button class="qty-btn minus" onclick="adjustQty(${i},-1)">−</button>
+        <button class="qty-btn plus" onclick="adjustQty(${i},1)">+</button>
+      </div>
     </div>
   `;
+}
 
-  const learningsBlock = buildLearningsBlock('bin');
+function adjustQty(idx, delta){
+  const r = currentResults[idx];
+  const target = r.isBin ? r.min : 3;
+  const maxAllowed = target * 2 + 2;
+  r.detected = Math.max(0, Math.min(maxAllowed, r.detected + delta));
+  r.missing = Math.max(0, target - r.detected);
+  renderZoneScreen();
+}
 
-  const prompt = `Tu es un expert en identification de spiritueux par leurs CAPSULES/BOUCHONS vu du dessus. Tu analyses une photo prise verticalement au-dessus d'un bac de stockage de bar. Les bouteilles sont debout, certaines partiellement cachées par d'autres.${learningsBlock}
+function resetManual(){
+  initCurrentResults();
+  currentPhoto = null;
+  currentReasoning = '';
+  renderZoneScreen();
+}
 
-PRODUITS RECHERCHÉS ET SIGNATURE VISUELLE EXACTE DE CHAQUE BOUCHON:
+// ============================================================
+// PHOTO + AI ANALYSIS
+// ============================================================
+function onPhotoSelected(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const MAX = 1280;
+      let w = img.width, h = img.height;
+      if(w > MAX || h > MAX){
+        if(w > h){ h = h * (MAX/w); w = MAX; }
+        else { w = w * (MAX/h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      currentPhoto = canvas.toDataURL('image/jpeg', 0.75);
+      analyzePhoto();
+    };
+    img.onerror = ()=>toast('Erreur lecture image');
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
 
-1. **Absolut Vodka** : capsule métallique ARGENTÉE LISSE sans logo coloré, parfaitement plate ou très légèrement bombée. Bouteille en-dessous = transparente avec étiquette bleu marine "ABSOLUT VODKA".
-   ⚠️ PIÈGE: Bacardi Carta Blanca a aussi un col argenté MAIS sur sa capsule il y a TOUJOURS un disque blanc avec la CHAUVE-SOURIS ROUGE (logo Bacardi). Si tu vois la chauve-souris = c'est PAS Absolut.
-   ⚠️ PIÈGE: Les bouteilles non-identifiées avec capsule grise/argentée sans signature visible = NE PAS compter comme Absolut par défaut.
+async function analyzePhoto(){
+  if(currentSection.isBin){
+    if(state.binProvider === 'roboflow' && state.roboflowKey){
+      return analyzeBinRoboflow();
+    }
+    return analyzeBinGemini();
+  }
+  return analyzeCounterGemini();
+}
 
-2. **Beefeater (Gin)** : capsule ROUGE VIF avec un grand "B" DORÉ ENCADRÉ au centre. Très reconnaissable.
-   La bouteille en-dessous est CARRÉE avec une étiquette rouge/blanc "BEEFEATER LONDON".
+function showLoading(msg){
+  document.getElementById('zone-screen-body').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">${msg}</div>
+    </div>
+  `;
+}
 
-3. **Bacardi Carta Blanca** : capsule BLANCHE/argentée avec un DISQUE ROUGE et BLANC contenant la CHAUVE-SOURIS noire stylisée (logo Bacardi). Bouteille transparente en-dessous, étiquette rouge/blanc "BACARDI CARTA BLANCA".
-   ⚠️ ATTENTION: Bacardi Spiced et Bacardi Carta Oro ont AUSSI le logo chauve-souris mais une capsule plus colorée (jaune-doré pour Oro). Compter SEULEMENT les Carta Blanca (capsule claire/blanche).
+function showError(msg){
+  document.getElementById('zone-screen-body').innerHTML = `
+    <div class="empty">
+      <div class="empty-icon">⚠️</div>
+      <div class="empty-text">Erreur d'analyse</div>
+      <div class="empty-sub" style="color:var(--danger)">${escapeHtml(msg)}</div>
+      <div class="btn-stack" style="max-width:300px;margin:24px auto 0">
+        <button class="btn" onclick="renderZoneScreen()">Retour</button>
+      </div>
+    </div>
+  `;
+}
 
-4. **El Jimador Tequila** : capsule TURQUOISE/VERT D'EAU MÉTALLISÉE très distinctive. Couleur unique dans le bac, impossible à confondre.
+async function geminiRequest(model, body){
+  const MAX_ATTEMPTS = 3;
+  const DELAYS = [1500, 3500, 7000];
+  for(let attempt=1; attempt<=MAX_ATTEMPTS; attempt++){
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${state.apiKey}`, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      if(r.ok) return await r.json();
+      const errText = await r.text();
+      const retriable = r.status===503||r.status===429||r.status>=500;
+      if(!retriable || attempt===MAX_ATTEMPTS) throw new Error(`API ${r.status}: ${errText.substring(0,150)}`);
+      const el = document.querySelector('.loading-text');
+      if(el) el.innerHTML = `Service occupé, tentative ${attempt+1}/${MAX_ATTEMPTS}...`;
+      await new Promise(res=>setTimeout(res, DELAYS[attempt-1]));
+    } catch(e){
+      if(attempt===MAX_ATTEMPTS) throw e;
+      await new Promise(res=>setTimeout(res, DELAYS[attempt-1]));
+    }
+  }
+}
 
-5. **Jameson** : capsule NOIRE MATTE avec un "J" doré ou un blason. Bouteille verte foncée en-dessous, étiquette "JAMESON IRISH WHISKEY".
-   Le col est noir uniforme, parfois on voit "Jameson" écrit sur le col.
+function buildLearningsBlock(zoneType){
+  const lessons = state.learnings[zoneType] || [];
+  if(lessons.length === 0) return '';
+  const byProduct = {};
+  lessons.forEach(l=>{
+    if(!byProduct[l.productName]) byProduct[l.productName] = [];
+    byProduct[l.productName].push(l.delta);
+  });
+  const insights = [];
+  Object.entries(byProduct).forEach(([name, deltas])=>{
+    if(deltas.length < 2) return;
+    const avg = deltas.reduce((s,d)=>s+d,0)/deltas.length;
+    if(Math.abs(avg) < 0.5) return;
+    if(avg < 0) insights.push(`- "${name}": tendance à SUR-COMPTER (+${Math.abs(avg).toFixed(1)} en trop). Sois plus conservateur.`);
+    else insights.push(`- "${name}": tendance à SOUS-COMPTER (${avg.toFixed(1)} oubliées). Compte aussi les bouteilles partiellement cachées.`);
+  });
+  if(insights.length === 0) return '';
+  return `\n\nLEÇONS APPRISES SUR CE BAR:\n${insights.join('\n')}\n\nTiens compte de ces patterns.`;
+}
 
-6. **Jack Daniel's** : capsule NOIRE avec étiquette blanche "Old No.7 Brand" ou texte "Jack Daniel's". Bouteille NOIRE rectangulaire avec étiquette noire/blanche.
-   ⚠️ DIFFÉRENCE avec Jameson: Jameson = capsule unie avec J doré. Jack Daniel's = capsule avec rectangle/écusson blanc texte noir.
+async function analyzeCounterGemini(){
+  showLoading('Analyse en cours... (5-15s)');
+  const positions = POSITIONS.filter(p=>p.n>=currentSection.range[0]&&p.n<=currentSection.range[1]);
+  const isVip = currentSection.isVip;
+  const learnings = buildLearningsBlock('counter');
+  const posDesc = positions.map(p=>{
+    if(p.exception) return `Position ${p.n} (EXCEPTION): 3 bouteilles DIFFÉRENTES en profondeur = ${p.items.join(' + ')}. Compter chaque produit séparément.`;
+    return `Position ${p.n}: "${p.name}" (3 bouteilles identiques attendues)`;
+  }).join('\n');
 
-7. **Crème de Pêche Giffard** : capsule BLEU MARINE FONCÉ avec écusson doré "1885 GIFFARD". Bouteille fine, contenu orange/pêche visible.
+  const prompt = isVip ? `
+Tu analyses une photo du comptoir VIP d'un bar. Chaque position contient une ou plusieurs bouteilles d'un produit spécifique.${learnings}
 
-8. **Triple Sec Giffard** : MÊME capsule que Crème de Pêche (bleu marine "1885 Giffard"). Différence: contenu TRANSPARENT (vs orange pour Pêche).
-   ⚠️ Si tu vois 2 bouchons "1885 Giffard" : 1 = Crème de Pêche, 1 = Triple Sec.
+POSITIONS À ANALYSER:
+${posDesc}
 
-MÉTHODE OBLIGATOIRE EN 3 ÉTAPES:
+Pour chaque position, compte le nombre de bouteilles VISIBLES du produit attendu.
 
-ÉTAPE 1 - INVENTAIRE: Liste TOUS les bouchons visibles dans la photo en les décrivant (couleur + texte/logo si visible). Inclus les bouteilles partiellement cachées dont tu peux voir le col ou le bouchon.
+Réponds UNIQUEMENT en JSON valide:
+{"positions":[{"n":78,"detected":3,"confidence":"high"},...]}
+` : `
+Tu analyses une photo du comptoir d'un bar. Chaque "position" est une COLONNE de 3 bouteilles alignées en PROFONDEUR. Quand une bouteille manque, il y a un TROU visible (moins de bouchons au-dessus).${learnings}
 
-ÉTAPE 2 - CLASSIFICATION: Pour chaque bouchon listé, attribue-le à UN des 8 produits ci-dessus. Si tu n'es pas sûr, marque "incertain".
+POSITIONS À ANALYSER:
+${posDesc}
 
-ÉTAPE 3 - COMPTAGE: Compte par produit.
+Compte le nombre de bouchons/capsules visibles AU-DESSUS de la ligne. 3 = plein. 2 = manque 1. 1 = manque 2. 0 = vide.
 
-IMPORTANT:
-- Sois CONSERVATEUR sur Absolut (en cas de doute sur un bouchon argenté lisse, NE PAS compter)
-- Sois GÉNÉREUX sur Jameson/Jack Daniel's (les bouteilles sombres sont souvent cachées; si tu vois un col noir avec étiquette typique, compte-le même partiellement visible)
-- Note ton niveau de confiance par produit
+Réponds UNIQUEMENT en JSON valide:
+{"positions":[{"n":1,"detected":3,"confidence":"high"},{"n":4,"detected":3,"confidence":"medium","exception_detail":{"Cointreau":1,"Kahlua":2}},...]}
+`;
+
+  try {
+    const base64 = currentPhoto.split(',')[1];
+    const mimeType = currentPhoto.match(/data:(.*?);/)[1];
+    const data = await geminiRequest('gemini-2.5-flash', {
+      contents:[{parts:[{text:prompt},{inline_data:{mime_type:mimeType,data:base64}}]}],
+      generationConfig:{temperature:0.1, responseMimeType:'application/json'}
+    });
+    const parsed = JSON.parse(data.candidates[0].content.parts[0].text);
+    applyCounterDetection(parsed.positions);
+    currentReasoning = `Analyse Gemini — ${parsed.positions?.length || 0} position(s) analysée(s).`;
+    renderZoneScreen();
+  } catch(e){
+    console.error(e);
+    showError(e.message);
+  }
+}
+
+function applyCounterDetection(detected){
+  const detMap = {};
+  (detected||[]).forEach(d=>{detMap[d.n] = d;});
+  currentResults.forEach(r=>{
+    const d = detMap[r.n];
+    if(d){
+      r.detected = d.detected ?? 3;
+      r.aiOriginalDetected = r.detected;
+      r.missing = Math.max(0, 3 - r.detected);
+      r.confidence = d.confidence || 'medium';
+      if(d.exception_detail) r.exception_detail = d.exception_detail;
+    }
+  });
+}
+
+async function analyzeBinGemini(){
+  showLoading('Analyse précise du bac... (10-20s)');
+  const learnings = buildLearningsBlock('bin');
+
+  const prompt = `Tu es un expert en identification de spiritueux par leurs BOUCHONS vu du dessus. Photo prise verticalement au-dessus d'un bac de stockage.${learnings}
+
+PRODUITS RECHERCHÉS:
+
+1. Absolut Vodka: capsule ARGENTÉE LISSE sans logo coloré. PIÈGE: Bacardi Carta Blanca a aussi un col argenté MAIS avec disque blanc + chauve-souris rouge. Si tu vois la chauve-souris = PAS Absolut.
+
+2. Beefeater: capsule ROUGE VIF + grand "B" DORÉ encadré. Très reconnaissable.
+
+3. Bacardi Carta Blanca: capsule BLANCHE avec DISQUE ROUGE/BLANC + CHAUVE-SOURIS noire.
+
+4. El Jimador Tequila: capsule TURQUOISE/VERT D'EAU MÉTALLISÉE. Couleur unique.
+
+5. Jameson: capsule NOIRE MATTE + "J" doré ou blason. Col noir uniforme.
+
+6. Jack Daniel's: capsule NOIRE + étiquette blanche "Old No.7" ou texte "Jack Daniel's".
+
+7. Crème de Pêche Giffard: capsule BLEU MARINE + écusson doré "1885 GIFFARD". Contenu orange.
+
+8. Triple Sec Giffard: MÊME capsule "1885 Giffard". Contenu TRANSPARENT.
+
+Méthode: inventaire des bouchons → classification → comptage.
+Conservateur sur Absolut. Généreux sur Jameson/JD (souvent cachés).
 
 Réponds UNIQUEMENT en JSON valide:
 {
-  "reasoning": "Description courte de ce que tu vois et comment tu as compté (2-3 phrases max, en français)",
+  "reasoning": "2-3 phrases en français sur ce que tu vois",
   "products": [
-    {"name": "Absolut Vodka", "detected": 5, "confidence": "high", "note": "5 capsules argentées lisses identifiées clairement"},
-    {"name": "Beefeater", "detected": 4, "confidence": "high", "note": ""},
-    {"name": "Bacardi Carta Blanca", "detected": 3, "confidence": "medium", "note": "2 visibles + 1 estimée derrière"},
-    {"name": "El Jimador Tequila", "detected": 3, "confidence": "high", "note": ""},
-    {"name": "Jameson", "detected": 3, "confidence": "medium", "note": "Cols noirs partiellement cachés"},
-    {"name": "Jack Daniel's", "detected": 2, "confidence": "high", "note": ""},
-    {"name": "Crème de Pêche Giffard", "detected": 1, "confidence": "high", "note": ""},
-    {"name": "Triple Sec Giffard", "detected": 1, "confidence": "high", "note": ""}
+    {"name":"Absolut Vodka","detected":5,"confidence":"high","note":""},
+    {"name":"Beefeater","detected":4,"confidence":"high","note":""},
+    {"name":"Bacardi Carta Blanca","detected":3,"confidence":"medium","note":""},
+    {"name":"El Jimador Tequila","detected":3,"confidence":"high","note":""},
+    {"name":"Jameson","detected":3,"confidence":"medium","note":""},
+    {"name":"Jack Daniel's","detected":2,"confidence":"high","note":""},
+    {"name":"Crème de Pêche Giffard","detected":1,"confidence":"high","note":""},
+    {"name":"Triple Sec Giffard","detected":1,"confidence":"high","note":""}
   ]
 }`;
 
   try {
     const base64 = currentPhoto.split(',')[1];
     const mimeType = currentPhoto.match(/data:(.*?);/)[1];
-
-    const data = await geminiRequestWithRetry('gemini-2.5-flash', {
-      contents: [{
-        parts: [
-          {text: prompt},
-          {inline_data: {mime_type: mimeType, data: base64}}
-        ]
-      }],
-      generationConfig: {
-        temperature: 0.1,
-        responseMimeType: "application/json"
-      }
-    }, updateLoadingMessage);
-
-    const text = data.candidates[0].content.parts[0].text;
-    const parsed = JSON.parse(text);
-
-    renderBinValidation(parsed.products, parsed.reasoning);
-
+    const data = await geminiRequest('gemini-2.5-flash', {
+      contents:[{parts:[{text:prompt},{inline_data:{mime_type:mimeType,data:base64}}]}],
+      generationConfig:{temperature:0.1,responseMimeType:'application/json'}
+    });
+    const parsed = JSON.parse(data.candidates[0].content.parts[0].text);
+    applyBinDetection(parsed.products);
+    currentReasoning = parsed.reasoning || '';
+    renderZoneScreen();
   } catch(e){
     console.error(e);
-    document.getElementById('section-content').innerHTML = `
-      <div class="empty">
-        <div class="empty-icon">⚠️</div>
-        <div class="empty-text">Erreur d'analyse:<br><span style="color:var(--danger);font-size:12px">${e.message}</span></div>
-        <div class="btn-stack" style="max-width:300px;margin:20px auto">
-          <button class="btn" onclick="renderBinInit()">Réessayer</button>
-          <button class="btn btn-secondary" onclick="manualEntry()">Saisir manuellement</button>
-        </div>
-      </div>
-    `;
+    showError(e.message);
   }
 }
 
-function renderBinValidation(detected, reasoning){
-  // Map by product name
+async function analyzeBinRoboflow(){
+  showLoading('Analyse via ton modèle Roboflow... (2-5s)');
+  try {
+    const base64 = currentPhoto.split(',')[1];
+    const url = `https://detect.roboflow.com/${ROBOFLOW_CONFIG.project}/${ROBOFLOW_CONFIG.version}?api_key=${state.roboflowKey}&confidence=30&overlap=50`;
+    const r = await fetch(url, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: base64
+    });
+    if(!r.ok){
+      const err = await r.text();
+      throw new Error(`Roboflow ${r.status}: ${err.substring(0,150)}`);
+    }
+    const data = await r.json();
+    const counts = {};
+    (data.predictions||[]).forEach(p=>{
+      const name = ROBOFLOW_CLASS_MAP[p.class] || p.class;
+      counts[name] = (counts[name]||0)+1;
+    });
+    const products = BIN_PRODUCTS.map(p=>({
+      name:p.name,
+      detected: counts[p.name]||0,
+      confidence:'high',
+      note: `${counts[p.name]||0} détection(s) — modèle Roboflow`,
+    }));
+    applyBinDetection(products);
+    currentReasoning = `Modèle Roboflow v${ROBOFLOW_CONFIG.version} — ${data.predictions?.length||0} bouteille(s) détectée(s).`;
+    renderZoneScreen();
+  } catch(e){
+    console.error(e);
+    showError(e.message);
+  }
+}
+
+function applyBinDetection(detected){
   const detMap = {};
-  detected.forEach(d=>{ detMap[d.name] = d; });
-
-  currentResults = BIN_PRODUCTS.map(p=>{
-    const d = detMap[p.name] || {detected: p.min, confidence: 'low'};
-    const detectedCount = d.detected ?? p.min;
-    const missing = Math.max(0, p.min - detectedCount);
-    return {
-      name: p.name,
-      cat: p.cat,
-      min: p.min,
-      detected: detectedCount,
-      aiOriginalDetected: detectedCount, // pour calculer le delta plus tard
-      missing: missing,
-      confidence: d.confidence || 'medium',
-      aiNote: d.note || '',
-      isBin: true,
-    };
+  detected.forEach(d=>{detMap[d.name]=d;});
+  currentResults.forEach(r=>{
+    const d = detMap[r.name];
+    if(d){
+      r.detected = d.detected ?? r.min;
+      r.aiOriginalDetected = r.detected;
+      r.missing = Math.max(0, r.min - r.detected);
+      r.confidence = d.confidence || 'medium';
+      r.aiNote = d.note || '';
+    }
   });
-
-  currentReasoning = reasoning || '';
-  renderValidationUI();
 }
 
 // ============================================================
-// RESTOCK RENDER
+// CONFIRM VALIDATION
+// ============================================================
+async function confirmValidation(){
+  const zoneType = currentSection.isBin ? 'bin' : 'counter';
+  const now = Date.now();
+
+  // Capture learnings (silent background)
+  currentResults.forEach(r=>{
+    if(r.aiOriginalDetected !== undefined && r.confidence !== 'manual'){
+      const delta = r.detected - r.aiOriginalDetected;
+      if(delta !== 0){
+        state.learnings[zoneType].push({
+          type:'auto',
+          productName:r.name,
+          aiSaid:r.aiOriginalDetected,
+          actualWas:r.detected,
+          delta:delta,
+          timestamp:now,
+        });
+      }
+    }
+  });
+  if(state.learnings[zoneType].length > 100){
+    state.learnings[zoneType] = state.learnings[zoneType].slice(-100);
+  }
+
+  // Remove previous scan's missing items
+  const oldScan = state.scans[currentSection.id];
+  if(oldScan && oldScan.results){
+    oldScan.results.forEach(r=>{
+      if(r.missing > 0){
+        if(r.exception && r.items){
+          const detail = r.exception_detail || {};
+          const itemCounts = {};
+          r.items.forEach(it=>{itemCounts[it]=(itemCounts[it]||0)+1;});
+          Object.keys(itemCounts).forEach(item=>{
+            const expected = itemCounts[item];
+            const detected = detail[item] !== undefined ? detail[item] : expected;
+            const wasMissing = Math.max(0, expected - detected);
+            if(wasMissing > 0 && state.restock[item]){
+              state.restock[item] = Math.max(0, state.restock[item] - wasMissing);
+            }
+          });
+        } else if(state.restock[r.name]){
+          state.restock[r.name] = Math.max(0, state.restock[r.name] - r.missing);
+        }
+      }
+    });
+  }
+
+  // Add new missing items
+  currentResults.forEach(r=>{
+    if(r.missing > 0){
+      if(r.exception && r.items){
+        const detail = r.exception_detail || {};
+        const itemCounts = {};
+        r.items.forEach(it=>{itemCounts[it]=(itemCounts[it]||0)+1;});
+        Object.keys(itemCounts).forEach(item=>{
+          const expected = itemCounts[item];
+          const detected = detail[item] !== undefined ? detail[item] : expected;
+          const missing = Math.max(0, expected - detected);
+          if(missing > 0) state.restock[item] = (state.restock[item]||0) + missing;
+        });
+      } else {
+        state.restock[r.name] = (state.restock[r.name]||0) + r.missing;
+      }
+    }
+  });
+
+  // Clean
+  Object.keys(state.restock).forEach(k=>{
+    if(state.restock[k] === 0) delete state.restock[k];
+  });
+
+  // Save scan
+  const ts = new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  const totalMissing = currentResults.reduce((s,r)=>s+r.missing,0);
+  state.scans[currentSection.id] = {
+    timestamp: ts,
+    missing: totalMissing,
+    results: currentResults,
+  };
+
+  saveState();
+  toast('Validé ✓');
+  closeZone();
+}
+
+// ============================================================
+// RESTOCK TAB
 // ============================================================
 function renderRestock(){
-  const container = document.getElementById('restock-content');
   const items = Object.entries(state.restock).filter(([k,v])=>v>0);
+  const summaryBlock = document.getElementById('restock-summary-block');
+  const container = document.getElementById('restock-content');
+
+  // Update header badge
+  const activeUnits = items.filter(([k])=>!state.done[k]).reduce((s,[k,v])=>s+v,0);
+  document.getElementById('header-badge').textContent = activeUnits;
 
   if(items.length === 0){
+    summaryBlock.innerHTML = '';
     container.innerHTML = `
       <div class="empty">
-        <div class="empty-icon">✨</div>
-        <div class="empty-text">Aucun manque détecté.<br>Bar fully stocked.</div>
+        <div class="empty-icon">🎉</div>
+        <div class="empty-text">Rien à remonter !</div>
+        <div class="empty-sub">Les manquants apparaîtront ici après tes scans.</div>
       </div>
     `;
     return;
   }
 
+  const totalActiveUnits = items.filter(([k])=>!state.done[k]).reduce((s,[k,v])=>s+v,0);
+  const totalDoneUnits = items.filter(([k])=>state.done[k]).reduce((s,[k,v])=>s+v,0);
+
+  summaryBlock.innerHTML = `
+    <div class="summary-card">
+      <div class="summary-label">À Remonter</div>
+      <div class="summary-num ${totalActiveUnits===0?'zero':''}">${totalActiveUnits}</div>
+      <div class="summary-sub">${items.length} produit${items.length>1?'s':''} • ${totalDoneUnits} déjà fait${totalDoneUnits>1?'s':''}</div>
+    </div>
+    <div class="btn-stack" style="margin-top:0;margin-bottom:18px">
+      <button class="btn btn-secondary" onclick="copyList()">📋 Copier la liste</button>
+      <button class="btn btn-danger" onclick="resetRestock()">Vider la liste</button>
+    </div>
+  `;
+
   // Group by category
   const byCategory = {};
   items.forEach(([name, qty])=>{
-    // Find category from POSITIONS or BIN_PRODUCTS
     const pos = POSITIONS.find(p=>p.name === name || (p.items && p.items.includes(name)));
     const bin = BIN_PRODUCTS.find(p=>p.name === name);
     const cat = pos ? pos.cat.replace(' VIP','') : (bin ? bin.cat : 'Autres');
@@ -1607,234 +1525,114 @@ function renderRestock(){
     byCategory[cat].push({name, qty});
   });
 
-  const totalUnits = items.reduce((s,[k,v])=>s+v, 0);
-
-  container.innerHTML = `
-    <div class="restock-summary">
-      <div class="restock-summary-label">Total à réassortir</div>
-      <div class="restock-summary-num">${totalUnits}</div>
-      <div class="restock-summary-sub">${items.length} produit${items.length>1?'s':''} concerné${items.length>1?'s':''}</div>
-    </div>
-    ${Object.entries(byCategory).map(([cat, products])=>`
-      <div class="cat-group">
-        <div class="cat-header">${cat}</div>
-        <div class="cat-items">
-          ${products.map(p=>`
-            <div class="restock-item">
-              <div>
-                <div class="restock-item-name">${p.name}</div>
-              </div>
-              <div class="qty-controls">
-                <button class="qty-btn" onclick="restockAdjust('${p.name.replace(/'/g,"\\'")}',-1)">−</button>
-                <div class="qty-num">${p.qty}</div>
-                <button class="qty-btn" onclick="restockAdjust('${p.name.replace(/'/g,"\\'")}',1)">+</button>
-              </div>
+  container.innerHTML = Object.entries(byCategory).map(([cat, products])=>`
+    <div class="restock-cat">
+      <div class="restock-cat-header">${cat}</div>
+      ${products.map(p=>{
+        const done = !!state.done[p.name];
+        const packsStr = formatPacks(p.qty);
+        return `
+          <div class="restock-item ${done?'done':''}">
+            <div class="restock-item-main">
+              <div class="restock-item-name">${escapeHtml(p.name)}</div>
+              ${packsStr ? `<div class="restock-item-packs">${packsStr}</div>` : ''}
             </div>
-          `).join('')}
-        </div>
-      </div>
-    `).join('')}
-    <div class="btn-stack">
-      <button class="btn btn-secondary" onclick="copyList()">
-        📋 Copier la liste
-      </button>
-      <button class="btn btn-secondary" onclick="showLearnings()">
-        🧠 Voir les leçons IA (${(state.learnings.counter.length + state.learnings.bin.length)})
-      </button>
-      <button class="btn btn-secondary" onclick="showSettings()">
-        ⚙️ Réglages (modèle IA, clés API)
-      </button>
-      <button class="btn btn-danger" onclick="resetRestock()">
-        Vider la liste
-      </button>
+            <div class="qty-pill ${done?'done':''}">${p.qty}</div>
+            <div class="qty-mini">
+              <button class="qty-btn minus" onclick="restockAdjust('${p.name.replace(/'/g,"\\'")}',-1)">−</button>
+              <button class="qty-btn plus" onclick="restockAdjust('${p.name.replace(/'/g,"\\'")}',1)">+</button>
+            </div>
+            <button class="btn-done ${done?'undone':''}" onclick="toggleDone('${p.name.replace(/'/g,"\\'")}')">
+              ${done ? '↺' : '✓'}
+            </button>
+          </div>
+        `;
+      }).join('')}
     </div>
-  `;
+  `).join('');
 }
 
-function showLearnings(){
-  const counter = state.learnings.counter || [];
-  const bin = state.learnings.bin || [];
-
-  // Aggregation pour patterns auto-collectés (delta-based)
-  function aggregate(lessons){
-    const autos = lessons.filter(l=>l.type !== 'detailed');
-    const byProduct = {};
-    autos.forEach(l=>{
-      if(!byProduct[l.productName]) byProduct[l.productName] = {deltas:[], count:0, lastTime:0};
-      byProduct[l.productName].deltas.push(l.delta);
-      byProduct[l.productName].count++;
-      byProduct[l.productName].lastTime = Math.max(byProduct[l.productName].lastTime, l.timestamp);
-    });
-    return Object.entries(byProduct)
-      .map(([name, data])=>{
-        const avg = data.deltas.reduce((s,d)=>s+d,0) / data.deltas.length;
-        return {name, avg, count: data.count, lastTime: data.lastTime};
-      })
-      .sort((a,b)=>Math.abs(b.avg)-Math.abs(a.avg));
+function restockAdjust(name, delta){
+  state.restock[name] = (state.restock[name]||0) + delta;
+  if(state.restock[name] <= 0){
+    delete state.restock[name];
+    delete state.done[name];
   }
-
-  function getDetailedErrors(lessons){
-    return lessons.filter(l=>l.type === 'detailed').sort((a,b)=>b.timestamp-a.timestamp);
-  }
-
-  const counterAgg = aggregate(counter);
-  const binAgg = aggregate(bin);
-  const counterDetailed = getDetailedErrors(counter);
-  const binDetailed = getDetailedErrors(bin);
-
-  const renderInsight = (insight)=>{
-    const dir = insight.avg < 0 ? 'sur-comptait' : 'sous-comptait';
-    const absAvg = Math.abs(insight.avg).toFixed(1);
-    const dotClass = Math.abs(insight.avg) >= 1.5 ? 'bad' : Math.abs(insight.avg) >= 0.7 ? 'warn' : 'ok';
-    return `
-      <div class="restock-item">
-        <div style="flex:1">
-          <div class="restock-item-name">${escapeHtml(insight.name)}</div>
-          <div class="restock-item-detail">
-            <span class="dot ${dotClass}" style="display:inline-block;margin-right:6px"></span>
-            ${dir} de ${absAvg} en moyenne • ${insight.count} essai${insight.count>1?'s':''}
-          </div>
-        </div>
-      </div>
-    `;
-  };
-
-  const renderDetailed = (err)=>{
-    const date = new Date(err.timestamp);
-    const ts = date.toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-    return `
-      <div class="restock-item" style="display:block">
-        <div style="display:flex;gap:10px;margin-bottom:6px">
-          ${err.photoThumb ? `<img src="${err.photoThumb}" style="width:64px;height:64px;object-fit:cover;border-radius:6px;flex-shrink:0">` : ''}
-          <div style="flex:1;min-width:0">
-            <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">${ts}${err.productName ? ` • ${escapeHtml(err.productName)}` : ''}</div>
-            <div style="font-size:13px;color:var(--text);margin-top:3px;line-height:1.4">${escapeHtml(err.userComment)}</div>
-          </div>
-        </div>
-      </div>
-    `;
-  };
-
-  document.getElementById('restock-content').innerHTML = `
-    <div style="margin-bottom:14px">
-      <button class="back-btn" onclick="renderRestock()">←</button>
-    </div>
-    <div class="restock-summary">
-      <div class="restock-summary-label">Apprentissage IA</div>
-      <div class="restock-summary-num">${counter.length + bin.length}</div>
-      <div class="restock-summary-sub">corrections enregistrées</div>
-    </div>
-    <div style="background:rgba(200,150,87,0.05);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:18px;font-size:12px;line-height:1.5;color:var(--text-2)">
-      <strong style="color:var(--accent)">Comment ça marche :</strong><br>
-      Tes ajustements automatiques et tes erreurs signalées sont injectés dans les futurs prompts. L'IA devient progressivement plus précise sur ton bar.
-    </div>
-
-    ${counterDetailed.length > 0 ? `
-      <div class="section-title">Comptoir — Erreurs signalées</div>
-      <div class="cat-group"><div class="cat-items">
-        ${counterDetailed.slice(0,10).map(renderDetailed).join('')}
-      </div></div>
-    ` : ''}
-
-    ${counterAgg.length > 0 ? `
-      <div class="section-title">Comptoir — Patterns auto-détectés</div>
-      <div class="cat-group">
-        <div class="cat-items">
-          ${counterAgg.filter(i=>Math.abs(i.avg)>=0.5).slice(0,15).map(renderInsight).join('') || '<div style="padding:14px;color:var(--text-3);font-size:13px;text-align:center">Pas encore de pattern significatif</div>'}
-        </div>
-      </div>
-    ` : ''}
-
-    ${binDetailed.length > 0 ? `
-      <div class="section-title">Bacs blancs — Erreurs signalées</div>
-      <div class="cat-group"><div class="cat-items">
-        ${binDetailed.slice(0,10).map(renderDetailed).join('')}
-      </div></div>
-    ` : ''}
-
-    ${binAgg.length > 0 ? `
-      <div class="section-title">Bacs blancs — Patterns auto-détectés</div>
-      <div class="cat-group">
-        <div class="cat-items">
-          ${binAgg.filter(i=>Math.abs(i.avg)>=0.5).slice(0,15).map(renderInsight).join('') || '<div style="padding:14px;color:var(--text-3);font-size:13px;text-align:center">Pas encore de pattern significatif</div>'}
-        </div>
-      </div>
-    ` : ''}
-
-    ${counter.length === 0 && bin.length === 0 ? `
-      <div class="empty">
-        <div class="empty-icon">🧠</div>
-        <div class="empty-text">Aucune correction enregistrée pour l'instant.<br><span style="font-size:12px;color:var(--text-3)">Corrige l'IA en ajustant les quantités ou en signalant une erreur précise lors d'un scan.</span></div>
-      </div>
-    ` : ''}
-
-    <div class="btn-stack" style="margin-top:24px">
-      <button class="btn btn-secondary" onclick="renderRestock()">← Retour</button>
-      <button class="btn btn-danger" onclick="resetLearnings()">Réinitialiser les leçons</button>
-    </div>
-  `;
-}
-
-function resetLearnings(){
-  if(!confirm('Effacer toutes les leçons apprises ? L\'IA va perdre tout son apprentissage.')) return;
-  state.learnings = {counter:[], bin:[]};
   saveState();
-  toast('Leçons réinitialisées');
   renderRestock();
 }
 
+function toggleDone(name){
+  if(state.done[name]) delete state.done[name];
+  else state.done[name] = true;
+  saveState();
+  renderRestock();
+}
+
+function copyList(){
+  const items = Object.entries(state.restock).filter(([k,v])=>v>0);
+  const text = items.map(([name,qty])=>{
+    const packsStr = formatPacks(qty);
+    return `${qty}× ${name}${packsStr ? ' ('+packsStr+')' : ''}`;
+  }).join('\n');
+  navigator.clipboard.writeText(text).then(()=>toast('Liste copiée ✓'));
+}
+
+function resetRestock(){
+  if(!confirm('Vider toute la liste de réassort ?')) return;
+  state.restock = {};
+  state.done = {};
+  state.scans = {};
+  saveState();
+  renderRestock();
+  toast('Liste vidée');
+}
+
 // ============================================================
-// SETTINGS (réglages IA + clés API)
+// SETTINGS TAB
 // ============================================================
-function showSettings(){
+function renderSettings(){
   const hasRoboflow = !!state.roboflowKey;
   const provider = state.binProvider || 'gemini';
 
-  document.getElementById('restock-content').innerHTML = `
-    <div style="margin-bottom:14px">
-      <button class="back-btn" onclick="renderRestock()">←</button>
+  document.getElementById('settings-content').innerHTML = `
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:18px;line-height:1.5">
+      Choisis le modèle d'IA utilisé pour les bacs blancs et gère tes clés API.
     </div>
 
-    <div style="font-family:'Fraunces',serif;font-size:24px;font-weight:600;letter-spacing:-0.02em;margin-bottom:6px">Réglages</div>
-    <div style="font-size:13px;color:var(--text-2);margin-bottom:20px">Choisis le modèle d'IA utilisé pour les bacs blancs et gère tes clés API.</div>
+    <div class="section-title">Modèle IA — Bacs blancs</div>
 
-    <div class="section-title">Modèle IA pour les bacs blancs</div>
-
-    <div class="card scan-card ${provider==='gemini'?'partial':''}" onclick="setProvider('gemini')" style="cursor:pointer">
-      <div class="card-row">
-        <div>
-          <div class="card-title">${provider==='gemini'?'● ':'○ '}Gemini Vision (Google)</div>
-          <div class="card-sub" style="margin-top:4px">Modèle généraliste — gratuit ~250 req/jour</div>
-          <div class="card-sub" style="color:var(--text-3);margin-top:2px">Précision: variable selon photo. Erreurs possibles.</div>
-        </div>
-      </div>
+    <div class="setting-card ${provider==='gemini'?'selected':''}" onclick="setProvider('gemini')">
+      <div class="setting-title">${provider==='gemini'?'● ':'○ '}Gemini Vision (Google)</div>
+      <div class="setting-desc">Modèle généraliste — gratuit ~250 req/jour</div>
+      <div class="setting-tag">Précision variable. Erreurs possibles.</div>
     </div>
 
-    <div class="card scan-card ${provider==='roboflow'?'partial':''}" onclick="tryRoboflowMode()" style="cursor:pointer">
-      <div class="card-row">
-        <div>
-          <div class="card-title">${provider==='roboflow'?'● ':'○ '}Ton modèle Roboflow ${hasRoboflow?'':'<span style="color:var(--text-3);font-size:11px">(non configuré)</span>'}</div>
-          <div class="card-sub" style="margin-top:4px">Modèle <i>bac-blanc v${ROBOFLOW_CONFIG.version}</i> — gratuit 1000 req/mois</div>
-          <div class="card-sub" style="color:var(--text-3);margin-top:2px">Précision: spécifique à ton bar. Améliore avec plus de photos annotées.</div>
-        </div>
-      </div>
+    <div class="setting-card ${provider==='roboflow'?'selected':''}" onclick="tryRoboflowMode()">
+      <div class="setting-title">${provider==='roboflow'?'● ':'○ '}Ton modèle Roboflow ${hasRoboflow?'':'<span style="color:var(--text-3);font-size:11px;font-weight:400">(non configuré)</span>'}</div>
+      <div class="setting-desc">Modèle bac-blanc v${ROBOFLOW_CONFIG.version} — gratuit 1000 req/mois</div>
+      <div class="setting-tag">Spécifique à ton bar. Améliore avec plus de photos annotées.</div>
     </div>
 
     <div class="section-title">Clé API Roboflow</div>
-    <div style="background:rgba(200,150,87,0.05);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.5;color:var(--text-2)">
-      <strong style="color:var(--accent)">Où la trouver :</strong><br>
-      Sur Roboflow → Settings (icône ⚙️ en bas à gauche) → API Keys → copie la clé <b>Private</b>. Elle ressemble à <code style="background:var(--bg-3);padding:1px 4px;border-radius:3px">rf_xxxxxxxxxxxx</code> ou similaire.
+    <div class="help">
+      <strong>Où la trouver :</strong> Sur Roboflow → Settings (icône ⚙️ en bas à gauche) → API Keys → copie la clé <strong>Private</strong>.
     </div>
     <input type="password" id="roboflow-key-input" class="input" placeholder="${hasRoboflow ? '••••••••• (clé enregistrée)' : 'Colle ta clé Roboflow ici'}" autocomplete="off">
-    <button class="btn" onclick="saveRoboflowKey()">${hasRoboflow ? 'Mettre à jour' : 'Enregistrer la clé'}</button>
-    ${hasRoboflow ? `<button class="btn btn-secondary" style="margin-top:8px" onclick="removeRoboflowKey()">Supprimer la clé Roboflow</button>` : ''}
+    <button class="btn" onclick="saveRoboflowKey()" style="margin-bottom:10px">${hasRoboflow ? 'Mettre à jour' : 'Enregistrer la clé'}</button>
+    ${hasRoboflow ? `<button class="btn btn-secondary" onclick="removeRoboflowKey()">Supprimer la clé</button>` : ''}
 
     <div class="section-title">Clé API Gemini</div>
     <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">${state.apiKey ? '✓ Configurée' : 'Non configurée'}</div>
     <button class="btn btn-secondary" onclick="resetGeminiKey()">Changer la clé Gemini</button>
 
-    <div class="btn-stack" style="margin-top:30px">
-      <button class="btn btn-secondary" onclick="renderRestock()">← Retour</button>
+    <div style="margin-top:30px;padding-top:20px;border-top:1px solid var(--border)">
+      <div class="section-title" style="margin-top:0">Apprentissage IA</div>
+      <div style="font-size:12px;color:var(--text-3);margin-bottom:10px">
+        ${state.learnings.counter.length + state.learnings.bin.length} correction(s) enregistrée(s).<br>
+        L'IA s'améliore en arrière-plan grâce à tes ajustements.
+      </div>
+      <button class="btn btn-secondary" onclick="resetLearnings()">Réinitialiser les leçons</button>
     </div>
   `;
 }
@@ -1843,12 +1641,12 @@ function setProvider(p){
   state.binProvider = p;
   saveState();
   toast(p === 'roboflow' ? 'Mode Roboflow activé ✓' : 'Mode Gemini activé ✓');
-  showSettings();
+  renderSettings();
 }
 
 function tryRoboflowMode(){
   if(!state.roboflowKey){
-    toast('Configure d\'abord ta clé Roboflow ci-dessous');
+    toast('Configure d\'abord ta clé Roboflow');
     return;
   }
   setProvider('roboflow');
@@ -1862,145 +1660,56 @@ function saveRoboflowKey(){
   }
   localStorage.setItem('roboflow_key', v);
   state.roboflowKey = v;
-  // Si on configure Roboflow pour la 1ère fois, on bascule auto en mode Roboflow
   if(state.binProvider !== 'roboflow'){
     state.binProvider = 'roboflow';
     saveState();
   }
-  toast('Clé Roboflow enregistrée ✓ Mode Roboflow activé');
-  showSettings();
+  toast('Clé Roboflow enregistrée ✓');
+  renderSettings();
 }
 
 function removeRoboflowKey(){
-  if(!confirm('Supprimer la clé Roboflow ? L\'app rebasculera sur Gemini pour les bacs.')) return;
+  if(!confirm('Supprimer la clé Roboflow ?')) return;
   localStorage.removeItem('roboflow_key');
   state.roboflowKey = '';
   state.binProvider = 'gemini';
   saveState();
   toast('Clé supprimée');
-  showSettings();
+  renderSettings();
 }
 
 function resetGeminiKey(){
-  if(!confirm('Vider la clé Gemini ? Tu devras la recoller au prochain lancement.')) return;
+  if(!confirm('Vider la clé Gemini ?')) return;
   localStorage.removeItem('gemini_key');
   state.apiKey = '';
   toast('Clé Gemini supprimée');
-  renderHome();
+  showTab('scanner');
 }
 
-// ============================================================
-// ERROR REPORTING (signaler une erreur précise)
-// ============================================================
-function openErrorReport(){
-  const modal = document.getElementById('error-modal');
-  document.getElementById('error-comment').value = '';
-  // Populate product dropdown
-  const select = document.getElementById('error-product');
-  const products = currentResults.map(r=>r.name);
-  // Dedupe
-  const uniqueProducts = [...new Set(products)];
-  select.innerHTML = '<option value="">— Aucun en particulier —</option>' +
-    uniqueProducts.map(p=>`<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
-  modal.style.display = 'flex';
+function resetLearnings(){
+  if(!confirm('Effacer toutes les leçons apprises ?')) return;
+  state.learnings = {counter:[], bin:[]};
+  saveState();
+  toast('Leçons réinitialisées');
+  renderSettings();
 }
 
-function closeErrorReport(){
-  document.getElementById('error-modal').style.display = 'none';
-}
-
-async function saveErrorReport(){
-  const comment = document.getElementById('error-comment').value.trim();
-  const product = document.getElementById('error-product').value;
-  if(!comment){
-    toast('Merci de décrire l\'erreur');
+function saveApiKey(){
+  const v = document.getElementById('api-key-input').value.trim();
+  if(!v.startsWith('AIza')){
+    toast('Clé invalide (doit commencer par AIza)');
     return;
   }
-
-  const zoneType = currentSection.isBin ? 'bin' : 'counter';
-
-  // Créer thumbnail de la photo (256px max, JPEG 50%)
-  let photoThumb = '';
-  if(currentPhoto){
-    try {
-      photoThumb = await createThumbnail(currentPhoto, 384, 0.5);
-    } catch(e){ console.warn('Thumb failed', e); }
-  }
-
-  state.learnings[zoneType].push({
-    type: 'detailed',
-    productName: product || null,
-    userComment: comment,
-    photoThumb: photoThumb,
-    timestamp: Date.now(),
-  });
-
-  // Limiter à 50 erreurs détaillées par zone (pour ne pas exploser localStorage)
-  const detailedOnly = state.learnings[zoneType].filter(l=>l.type==='detailed');
-  if(detailedOnly.length > 20){
-    // Garder seulement les 20 dernières erreurs détaillées
-    const autoOnly = state.learnings[zoneType].filter(l=>l.type!=='detailed');
-    state.learnings[zoneType] = [...autoOnly, ...detailedOnly.slice(-20)];
-  }
-
-  saveState();
-  closeErrorReport();
-  toast('Erreur enregistrée ✓ L\'IA en tiendra compte');
-}
-
-function createThumbnail(dataUrl, maxSize, quality){
-  return new Promise((resolve, reject)=>{
-    const img = new Image();
-    img.onload = ()=>{
-      let w = img.width, h = img.height;
-      if(w > maxSize || h > maxSize){
-        if(w > h){ h = h * (maxSize/w); w = maxSize; }
-        else { w = w * (maxSize/h); h = maxSize; }
-      }
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL('image/jpeg', quality));
-    };
-    img.onerror = reject;
-    img.src = dataUrl;
-  });
-}
-
-function restockAdjust(name, delta){
-  state.restock[name] = (state.restock[name] || 0) + delta;
-  if(state.restock[name] <= 0) delete state.restock[name];
-  saveState();
-  renderRestock();
-  renderHome();
-}
-
-function copyList(){
-  const items = Object.entries(state.restock).filter(([k,v])=>v>0);
-  const text = items.map(([name,qty])=>`${qty}× ${name}`).join('\n');
-  navigator.clipboard.writeText(text).then(()=>toast('Liste copiée ✓'));
-}
-
-function resetRestock(){
-  if(!confirm('Vider toute la liste de réassort ?')) return;
-  state.restock = {};
-  state.scans = {};
-  saveState();
-  renderRestock();
-  renderHome();
-  toast('Liste vidée');
+  localStorage.setItem('gemini_key', v);
+  state.apiKey = v;
+  toast('Clé enregistrée ✓');
+  renderScanner();
 }
 
 // ============================================================
 // INIT
 // ============================================================
-renderHome();
-
-// Register basic service worker for PWA-ish behavior (offline shell)
-if('serviceWorker' in navigator){
-  // Skip for file:// or non-https
-}
+showTab('scanner');
 </script>
 </body>
 </html>
